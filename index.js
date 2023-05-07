@@ -1,7 +1,7 @@
 import {AppRegistry} from 'react-native';
 import App from './App';
 import {name as appName} from './app.json';
-import {addNewLocation, asignContributer} from './src/server';
+import {addNewLocation, asignContributor} from './src/server';
 import {Provider} from 'react-redux';
 import store from './src/Store/store';
 import {contributorState} from './src/Store/Reducers/locationReducer';
@@ -33,12 +33,12 @@ async function MyBackgroundTask(busdata) {
   }
    */
 
-  const getContributerState = store.getState().assignContributor;
+  const getContributorState = store.getState().assignContributor;
 
   const {data} =
     busdata.speed > 20 &&
-    !getContributerState.assigned &&
-    (await asignContributer({...busdata, ms: (await getPing()).duration}));
+    !getContributorState.assigned &&
+    (await asignContributor({...busdata, ms: (await getPing()).duration}));
 
   if (data) {
     dispatch(
@@ -48,8 +48,8 @@ async function MyBackgroundTask(busdata) {
 
   if (
     (data && !data?.previous === false) ||
-    getContributerState?.previous === false ||
-    getContributerState?.wait === true
+    getContributorState?.previous === false ||
+    getContributorState?.wait === true
   ) {
     // console.log('Inside AddContribut');
     const {data: contributarLocation} = await addNewLocation(busdata);
@@ -78,9 +78,6 @@ async function MyBackgroundTask(busdata) {
   return true;
 }
 
-// Register the service
-ReactNativeForegroundService.register();
-
 const ReduxProvider = () => {
   const MyTheme = {
     ...DefaultTheme,
@@ -101,4 +98,6 @@ const ReduxProvider = () => {
   );
 };
 
+// Register the service
+ReactNativeForegroundService.register();
 AppRegistry.registerComponent(appName, () => ReduxProvider);

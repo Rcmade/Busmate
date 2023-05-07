@@ -11,10 +11,11 @@ import {TASK_ID} from '../..';
 import {getPing, getStorage, setStorage} from '../utils/functions';
 import {contributorState} from '../Store/Reducers/locationReducer';
 import {useDispatch, useSelector} from 'react-redux';
-import {getNewLocationRoute} from '../server';
+import {changeContributor, getNewLocationRoute} from '../server';
 import {useToast} from 'native-base';
 import ReactNativeForegroundService from '@supersami/rn-foreground-service';
 import LocationService from '../services/locationService';
+import Geolocation from 'react-native-geolocation-service';
 
 const HomeScreen = () => {
   const dispatch = useDispatch();
@@ -25,7 +26,7 @@ const HomeScreen = () => {
   const [appState, setAppState] = useState(AppState.currentState);
   const toast = useToast();
   const isRun = +`${new Date().getHours()}.${new Date().getMinutes()}`;
-
+  const isRunNow = isRun < 9.1 && isRun > 5.9;
   // Ask the user to give permission
   useEffect(() => {
     let cleanFunction = true;
@@ -67,8 +68,8 @@ const HomeScreen = () => {
       if (nextAppState === 'active') {
         // this will call every 4 second
         interval = setInterval(() => {
-          getLocation();
-          if (isRun < 9.2 && isRun > 5.9) {
+          if (isRunNow) {
+            getLocation();
           }
         }, 4000);
       } else {
@@ -86,8 +87,8 @@ const HomeScreen = () => {
     // this is because the user open the app first time then only this function will invocke
     if (appState === 'active') {
       interval = setInterval(() => {
-        getLocation();
-        if (isRun < 9.2 && isRun > 5.9) {
+        if (isRunNow) {
+          getLocation();
         }
       }, 4000);
     }
@@ -105,20 +106,20 @@ const HomeScreen = () => {
   useEffect(() => {
     let clearFuntion = true;
     const startForeGround = async () => {
-      // if (isRun < 9.2 && isRun > 5.9) {
       ReactNativeForegroundService.start({
         id: TASK_ID,
         title: 'BusMets',
         message: 'We will notify when your bus available',
         icon: 'ic_launcher',
       });
-      // } else {
-      //   await ReactNativeForegroundService.stopAll();
-      //   toast.show({
-      //     description: 'No buses running at the moment',
-      //     placement: 'top',
-      //   });
-      // }
+      if (isRunNow) {
+      } else {
+        // await ReactNativeForegroundService.stopAll();
+        // toast.show({
+        //   description: 'No buses running at the moment',
+        //   placement: 'top',
+        // });
+      }
     };
 
     clearFuntion && startForeGround();
@@ -129,6 +130,7 @@ const HomeScreen = () => {
 
   // add_task forground services so that the app work even in the background or forground services
   useEffect(() => {
+    let watchId = null;
     ReactNativeForegroundService.add_task(
       async () => {
         RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
@@ -136,106 +138,130 @@ const HomeScreen = () => {
           fastInterval: 2000,
         });
 
+        const intervalId = setInterval(async () => {
+          LocationService.ping = (await getPing()).duration;
+        }, 5000);
         try {
-          // it geolocaiton.watchlocation which calls when the minmimum distance 30 meters and and every 4 second
-          const {location} = await LocationService.watchLocation();
-          console.log(`Speed: ${location?.speed} , ${location?.speed > 20}`, {
-            location,
-          });
-          // if speed greater than 17 then it calls
-          const assignedUser = await LocationService.assignLocationContributor(
-            getUserData?.user,
+          watchId = Geolocation.watchPosition(
+            async position => {
+              const currentTime =
+                +`${new Date().getHours()}.${new Date().getMinutes()}`;
+              const offApp = currentTime < 9.1 && currentTime > 5.9;
+              if (!offApp) {
+                await ReactNativeForegroundService.stopAll();
+                Geolocation.clearWatch(watchId);
+                clearInterval(intervalId);
+              }
+              // filter required data from position
+              const locationData = {
+                latitude1: position.coords.latitude,
+                longitude1: position.coords.longitude,
+                heading: position.coords.heading,
+                // busNumber: user && user.busNumber,
+                // weight: user && user.weight,
+                // _id: user && user._id, //640fb8398d2d666319a7b000
+                speed: position.coords.speed * 3.6,
+              };
+
+              const {location} = await LocationService.changeLocation(
+                locationData,
+              );
+
+              // it geolocaiton.watchlocation which calls when the minmimum distance 30 meters and and every 4 second
+              console.log(
+                `Speed: ${location?.speed} , ${location?.speed > 20}`,
+                {
+                  location,
+                },
+              );
+
+              // if speed greater than 17 then it calls
+              const assignedUser =
+                await LocationService.assignLocationContributor(
+                  getUserData?.user,
+                );
+
+              // it calls only , if server says there is no contributor in database or if contributor present in database the if this contributor present in previous five user  database
+              if (
+                (assignedUser && assignedUser?.previous === false) ||
+                (assignedUser && assignedUser?.wait === true)
+              ) {
+                const addNewLocation = await LocationService.addNewLocation({
+                  ...location,
+                  _id: getUserData.user._id,
+                  busNumber: getUserData.user.busNumber,
+                });
+
+                clearInterval(intervalId);
+
+                // if user not present in the previous database all the forground services will be remove like background and forground services
+                if (
+                  addNewLocation.previous === true &&
+                  addNewLocation.wait === false &&
+                  addNewLocation?.youAreDone == true
+                ) {
+                  await ReactNativeForegroundService.stopAll();
+                }
+              }
+
+              // speed 0 because if location not changes the speed will not change then assinge function runs multiple times
+              LocationService.location.speed = 0;
+            },
+
+            error => {
+              console.log('Error: ', error);
+              const removeUser = async () => {
+                const isClosed = await changeContributor({
+                  _id: getUserData?.user?._id,
+                  busNumber: getUserData?.user?.busNumber,
+                });
+                if (isClosed.youAreDone === true) {
+                  await ReactNativeForegroundService.stopAll();
+                }
+              };
+
+              removeUser();
+              setTimeout(() => {}, 0);
+            },
+            {
+              // because the of accuracy
+              enableHighAccuracy: true,
+              // runs when the distance is greater than 30 meter
+              distanceFilter: 50,
+              // runs every 4 second
+              interval: 4000,
+              // This option sets the maximum time (in milliseconds) that can pass before a new location update is obtained. Setting this to a lower value can help improve the responsiveness of the location updates, but may consume more battery.
+              fastestInterval: 2000,
+              // if user not enabled the location the it open dialog for asking location
+              showLocationDialog: true,
+              // this helps the location update even the app in forground or in background
+              forceRequestLocation: true,
+              //Setting this to false will use the Google Play Services location API if available, which can provide more accurate location data.
+              forceLocationManager: false,
+            },
           );
-          // it is just for safety purposes because when use open the app all the states are null or in its intial state
-          if (assignedUser) {
-            dispatch(
-              contributorState({
-                previous: assignedUser.previous,
-                assigned: assignedUser.assigned,
-              }),
-            );
-          }
-          // it calls only , if server says there is no contributor in database or if contributor present in database the if this contributor present in previous five user  database
-          if (
-            (assignedUser && assignedUser?.previous === false) ||
-            (assignedUser && assignedUser?.wait === true)
-          ) {
-            const addNewLocation = await LocationService.addNewLocation({
-              ...location,
-              ms: (await getPing()).duration,
-              _id: getUserData.user._id,
-              busNumber: getUserData.user.busNumber,
-            });
-
-            // console.log(
-            //   addNewLocation.previous === true &&
-            //     addNewLocation.wait === false &&
-            //     addNewLocation?.youAreDone == true,
-            //   {addNewLocation},
-            // );
-
-            // if user not present in the previous database all the forground services will be remove like background and forground services
-            if (
-              addNewLocation.previous === true &&
-              addNewLocation.wait === false &&
-              addNewLocation?.youAreDone == true
-            ) {
-              await ReactNativeForegroundService.stopAll();
-            }
-          }
-          // speed 0 because if location not changes the speed will not change then assinge function all multiple times
-          LocationService.location.speed = 0;
         } catch (error) {
           console.log(error);
           // dispatch(contributorState(false));
         }
       },
       {
-        onLoop: true,
+        onLoop: false,
         taskId: TASK_ID,
         onError: e => console.log(`Error logging:`, e),
       },
     );
 
-    return () => null;
+    return () => Geolocation.clearWatch(watchId);
   }, []);
-
-  // This function will call getRealTimeLocation every three seconds even when app in the background
-  // const intervalForLocation = async () => {
-  //   //  an infinite loop task
-
-  //   // if (isRun < 9.2 && isRun > 5.9) {
-  //   while (BackgroundService.isRunning()) {
-  //     await getRealTimeLocation();
-  //     await new Promise(resolve => setTimeout(resolve, 4000));
-  //   }
-  //   // } else {
-  //   //   toast.show({
-  //   //     description: 'No buses running at the moment',
-  //   //     placement: 'top',
-  //   //   });
-  //   //   await BackgroundService.stop();
-  //   //   AppRegistry.cancelHeadlessTask(TASK_NAME, TASK_NAME);
-  //   // }
-  // };
-
-  // useEffect(() => {
-  //   let clearFuntion = true;
-  //   const startTracking = async () => {
-  //     await BackgroundService.start(
-  //       intervalForLocation,
-  //       backgroundNotification,
-  //     );
-  //     // await BackgroundService.stop();
-  //   };
-
-  //   clearFuntion && startTracking();
-  //   return () => (clearFuntion = false);
-  // }, []);
 
   return (
     <>
-      <MapComponents mapRef={mapRef} trackingLineCoordinates={location} />
+      <MapComponents
+        mapRef={mapRef}
+        user={getUserData?.user}
+        trackingLineCoordinates={location}
+      />
     </>
   );
 };

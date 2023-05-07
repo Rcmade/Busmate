@@ -40,7 +40,7 @@ const Header = () => {
     (Date.now() - new Date(user?.updatedAt)) / (1000 * 60 * 60 * 24),
   );
 
-  const totalNumOfBus = 21;
+  const totalNumOfBus = 25;
   const arrOfBus = Array.from({length: totalNumOfBus}, (_, i) => i + 1);
 
   const logOutHandler = async () => {
@@ -94,9 +94,9 @@ const Header = () => {
                   </TouchableOpacity>
                 );
               }}>
-              <Menu.Item onPress={() => navigation.navigate('ErrorLogs')}>
+              {/* <Menu.Item onPress={() => navigation.navigate('ErrorLogs')}>
                 <Text>Error logs</Text>
-              </Menu.Item>
+              </Menu.Item> */}
 
               <Menu.Item
                 onPress={() => {

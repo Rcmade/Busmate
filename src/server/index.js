@@ -1,14 +1,13 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://api.busmets.live/api',
-  // baseURL: 'http://192.168.132.233:4444/api',
+  baseURL: 'https://busmets.azurewebsites.net/api',
+  // baseURL: 'http://192.168.142.233:4444/api',
   withCredentials: true,
   headers: {
     Accept: 'application/json',
   },
 });
-
 
 api.interceptors.request.use(config => {
   if (config.url === '/signup') {
@@ -20,8 +19,10 @@ api.interceptors.request.use(config => {
 export const addNewLocation = async location =>
   api.post('/addnewlocation', location);
 
-export const asignContributer = async data =>
-  api.post('/asignContributer', data);
+export const asignContributor = async data =>
+  api.post('/asignContributor', data);
+export const changeContributor = async data =>
+  api.post('/changecontributor', data);
 
 export const getLocation = async location => api.get('/get', location);
 export const sendOtp = async data => api.post('/otp-send', data);
@@ -40,5 +41,5 @@ export const getNewLocationRoute = async data =>
     },
   });
 
-export const testapi = async data => api.get('/get', data);
+export const testapi = async data => api.post('/get', data);
 export default api;

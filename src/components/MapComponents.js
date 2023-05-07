@@ -1,10 +1,11 @@
-import { StyleSheet, Image } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import MapView, { Marker } from 'react-native-maps';
+import {StyleSheet, Image} from 'react-native';
+import React, {useEffect, useState, useRef} from 'react';
+import MapView, {Marker} from 'react-native-maps';
 import MapPolyLineCompnent from './MapPolyLineCompnent';
+import {Text, View} from 'native-base';
 // import {Image} from 'native-base';
 
-const MapComponents = ({ trackingLineCoordinates, mapRef }) => {
+const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
   // console.log({trackingLineCoordinates});
 
   const [marker, setMarker] = useState(null);
@@ -15,12 +16,13 @@ const MapComponents = ({ trackingLineCoordinates, mapRef }) => {
     longitudeDelta: 0.0421,
   });
 
-  const [markerSize, setMarkerSize] = useState({ width: 0, height: 0 });
+  const [lastLocationRef, setLastLocationRef] = useState('');
+  const [markerSize, setMarkerSize] = useState({width: 0, height: 0});
 
   const handleLayout = event => {
-    const { width, height } = event.nativeEvent.layout;
+    const {width, height} = event.nativeEvent.layout;
     const markerSize = Math.min(width, height) * 0.9;
-    setMarkerSize({ width: markerSize, height: markerSize });
+    setMarkerSize({width: markerSize, height: markerSize});
   };
 
   const [heading, setHeading] = useState('0');
@@ -28,7 +30,6 @@ const MapComponents = ({ trackingLineCoordinates, mapRef }) => {
     latitude: 22.719459654294255,
     longitude: 75.857048307291,
   });
-
 
   // useEffect(() => {
   //   console.log({ trackingLineCoordinates });
@@ -64,6 +65,11 @@ const MapComponents = ({ trackingLineCoordinates, mapRef }) => {
           4000,
         );
       }
+
+      if (getLastPosition?.createdAt) {
+        const date = new Date(getLastPosition?.createdAt).toLocaleTimeString();
+        setLastLocationRef(date || 'Not connected');
+      }
     }
 
     // Clean up the interval when the component unmounts
@@ -72,42 +78,63 @@ const MapComponents = ({ trackingLineCoordinates, mapRef }) => {
 
   return (
     <>
-      <MapView
-        ref={mapRef}
-        showsUserLocation={true}
-        style={StyleSheet.absoluteFill}
-        // minZoomLevel={10}
-        showsMyLocationButton={true}
-        onRegionChange={setInitialRegion}
-        showsCompass={true}
-        initialRegion={initialRegion}>
-        {trackingLineCoordinates && (
-          <MapPolyLineCompnent
-            trackingLineCoordinates={trackingLineCoordinates}
-          />
-        )}
-        {trackingLineCoordinates?.length > 1 && (
-          <Marker.Animated
-            coordinate={markerCoordinate}
-            anchor={{ x: 0.5, y: 0.5 }}
-            title="Your Bus"
-            ref={marker => {
-              setMarker(marker);
-            }}
-            description="Your Bus">
-            <Image
-              source={require('../assets/BusMarker.png')}
-              style={[
-                styles.marker,
-                markerSize,
-                { transform: [{ rotate: `${heading}deg` }] },
-              ]}
-              alt="Your Bus Is Here"
+      <View w="full" h="full">
+        <MapView
+          ref={mapRef}
+          showsUserLocation={true}
+          style={StyleSheet.absoluteFill}
+          // minZoomLevel={10}
+          showsMyLocationButton={true}
+          onRegionChange={setInitialRegion}
+          showsCompass={true}
+          initialRegion={initialRegion}>
+          {trackingLineCoordinates && (
+            <MapPolyLineCompnent
+              trackingLineCoordinates={trackingLineCoordinates}
             />
-          </Marker.Animated>
-        )}
-        {/* )} */}
-      </MapView>
+          )}
+          {trackingLineCoordinates?.length > 1 && (
+            <Marker.Animated
+              coordinate={markerCoordinate}
+              anchor={{x: 0.5, y: 0.5}}
+              title="Bus Number"
+              ref={marker => {
+                setMarker(marker);
+              }}
+              description={user.busNumber || 'Unavailable'}>
+              <Image
+                source={require('../assets/BusMarker.png')}
+                style={[
+                  styles.marker,
+                  markerSize,
+                  {transform: [{rotate: `${heading}deg`}]},
+                ]}
+                alt="Your Bus Is Here"
+              />
+            </Marker.Animated>
+          )}
+        </MapView>
+
+        <View
+          p="3"
+          position={'absolute'}
+          bottom="20"
+          borderRadius={'2'}
+          // h="full"
+          style={{
+            // backgroundColor: 'blue',
+            backgroundColor: 'rgba(205,205,205, 0.5)',
+          }}>
+          <View flexDirection={'row'}>
+            <Text fontSize={'md'} fontWeight="bold" color="black">
+              Last Location:{' '}
+            </Text>
+            <Text fontSize={'md'} fontWeight="extrabold" color="red.500">
+              {lastLocationRef || 'Not connected'}
+            </Text>
+          </View>
+        </View>
+      </View>
     </>
   );
 };
@@ -125,6 +152,6 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     minWidth: 60,
     minHeight: 60,
-    transform: [{ rotate: '-70deg' }],
+    transform: [{rotate: '-70deg'}],
   },
 });

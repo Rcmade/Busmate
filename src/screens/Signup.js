@@ -174,7 +174,7 @@ const Signup = () => {
         }
       }
     } catch (error) {
-      console.log(error);
+      console.log(JSON.stringify(error));
     } finally {
       setIsLoading(false);
     }
@@ -334,6 +334,7 @@ const Signup = () => {
             readOnly={isEmailVarified}
             autoComplete="email"
             name="email"
+            autoCapitalize="none"
             value={inputValue?.email}
             onChange={onChangeHandler}
             onChangeText={value => onChangeHandler('email', value)}

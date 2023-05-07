@@ -143,6 +143,7 @@ const Login = () => {
             alt="Email Img"
             autoComplete="email"
             name="email"
+            autoCapitalize="none"
             value={inputValue?.email}
             onChangeText={value => onChangeHandler('email', value)}
             autoCompleteType="email"

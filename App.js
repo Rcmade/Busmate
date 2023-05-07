@@ -12,8 +12,16 @@ import Header from './src/components/Header';
 import ForgetPassword from './src/screens/ForgetPassword';
 import FineLocation from './src/screens/FineLocation';
 import BackgroundLocation from './src/screens/BackgroundLocation';
+import {LogBox} from 'react-native';
 
 const App = () => {
+  LogBox.ignoreLogs([
+    'We can not support a function callback. See Github Issues for details https://github.com/adobe/react-spectrum/issues/2320',
+  ]);
+  LogBox.ignoreLogs([
+    'Warning: Failed prop type: Invalid props.style key `color` supplied to `Image`.',
+  ]);
+
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const isUserLoggedIn = useSelector(state => state.authUser);

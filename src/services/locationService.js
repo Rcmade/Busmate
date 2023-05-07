@@ -1,12 +1,14 @@
-import Geolocation from '@react-native-community/geolocation';
-import {asignContributer, addNewLocation as addNewLocationApi} from '../server';
+import {
+  asignContributor,
+  addNewLocation as addNewLocationApi,
+  changeContributor,
+} from '../server';
 import {getPing} from '../utils/functions';
 
 class LocationService {
   location = {
     speed: 0,
   };
-  error = null;
   isAssigned = null;
   busData = null;
   isAddNewLocation = {
@@ -14,62 +16,52 @@ class LocationService {
     wait: null,
     youAreDone: null,
   };
+  avgSpeedArr = [];
+  isAssignedNow = false;
+  ping = null;
 
-  async watchLocation() {
+  async changeLocation(newLocation) {
     // Track the user
-    Geolocation.watchPosition(
-      async position => {
-        // filter required data from position
-        const locationData = {
-          latitude1: position.coords.latitude,
-          longitude1: position.coords.longitude,
-          heading: position.coords.heading,
-          // busNumber: user && user.busNumber,
-          // weight: user && user.weight,
-          // _id: user && user._id, //640fb8398d2d666319a7b000
-          speed: position.coords.speed * 3.6,
-        };
+    this.ping = (await getPing()).duration;
+    this.location = newLocation;
+    this.busData = newLocation;
+    this.avgSpeedArr.push(newLocation.speed || 0);
+    if (this.avgSpeedArr.length >= 6) {
+      this.avgSpeedArr.shift();
+    }
 
-        this.busData = locationData;
+    if (!this.isAssigned?.assigned) {
+      console.log('this.avgSpeedArr.length', this.avgSpeedArr.length);
+      console.log(
+        'avgSpeed',
+        this.avgSpeedArr.reduce((a, b) => a + b, 0) / this.avgSpeedArr?.length,
+      );
+      if (this.avgSpeedArr.length === 5) {
+        this.isAssignedNow =
+          this.avgSpeedArr.reduce((a, b) => a + b, 0) /
+            this.avgSpeedArr?.length >=
+          17;
+      }
+    }
 
-        // return the locationData which can access the location
-        this.location = locationData;
-      },
-
-      error => {
-        console.log('Error: ', error);
-        this.error = error;
-      },
-      {
-        // because the of accuracy
-        enableHighAccuracy: true,
-        // runs when the distance is greater than 30 meter
-        distanceFilter: 30,
-        // runs every 4 second
-        interval: 4000,
-        // This option sets the maximum time (in milliseconds) that can pass before a new location update is obtained. Setting this to a lower value can help improve the responsiveness of the location updates, but may consume more battery.
-        fastestInterval: 2000,
-        // if user not enabled the location the it open dialog for asking location
-        showLocationDialog: true,
-        // this helps the location update even the app in forground or in background
-        forceRequestLocation: true,
-        //Setting this to false will use the Google Play Services location API if available, which can provide more accurate location data.
-        forceLocationManager: false,
-      },
-    );
-
-    return {location: this.location, error: this.error};
+    // console.log({
+    //   isAssignedNow: this.isAssignedNow,
+    //   // avgSpeedArr: this.avgSpeedArr,
+    //   avgSpeed:
+    //     this.avgSpeedArr.reduce((a, b) => a + b, 0) / this.avgSpeedArr?.length,
+    // });
+    return {location: this.location};
   }
 
   async assignLocationContributor(user) {
-    if (this.location?.speed > 17 && !this.isAssigned?.assigned) {
+    if (this.isAssignedNow && !this.isAssigned?.assigned) {
       console.log('Inside');
       this.busData = {
         ...this.location,
         ...user,
-        ms: (await getPing()).duration,
+        ms: this.ping,
       };
-      const {data} = await asignContributer(this.busData);
+      const {data} = await asignContributor(this.busData);
       console.log({data});
       if (data) {
         this.isAssigned = data;
@@ -81,13 +73,25 @@ class LocationService {
   }
 
   async addNewLocation(userBusData) {
-    const {data} = await addNewLocationApi(userBusData);
+    const {data} = await addNewLocationApi({...userBusData, ms: this.ping});
     this.isAddNewLocation = {
       previous: data.previous,
       wait: data.wait,
       youAreDone: data.youAreDone,
     };
 
+    return this.isAddNewLocation;
+  }
+  async changeTheContributor(userData) {
+    if (this.isAssigned?.assigned) {
+      const {data} = await changeContributor(userData);
+      this.isAddNewLocation = {
+        previous: data.previous,
+        wait: data.wait,
+        youAreDone: data.youAreDone,
+      };
+      this.isAssigned.assigned = false;
+    }
     return this.isAddNewLocation;
   }
 }
