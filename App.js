@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useLayoutEffect} from 'react';
 import HomeScreen from './src/screens/HomeScreen';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useNavigation, StackActions} from '@react-navigation/native';

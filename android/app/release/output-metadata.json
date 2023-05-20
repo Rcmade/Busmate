@@ -4,16 +4,60 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.busmets",
+  "applicationId": "com.busmate",
   "variantName": "release",
   "elements": [
     {
-      "type": "SINGLE",
-      "filters": [],
+      "type": "ONE_OF_MANY",
+      "filters": [
+        {
+          "filterType": "ABI",
+          "value": "x86_64"
+        }
+      ],
       "attributes": [],
-      "versionCode": 9,
-      "versionName": "1.0.8",
-      "outputFile": "app-release.apk"
+      "versionCode": 13004,
+      "versionName": "1.0.13",
+      "outputFile": "app-x86_64-release.apk"
+    },
+    {
+      "type": "ONE_OF_MANY",
+      "filters": [
+        {
+          "filterType": "ABI",
+          "value": "armeabi-v7a"
+        }
+      ],
+      "attributes": [],
+      "versionCode": 13001,
+      "versionName": "1.0.13",
+      "outputFile": "app-armeabi-v7a-release.apk"
+    },
+    {
+      "type": "ONE_OF_MANY",
+      "filters": [
+        {
+          "filterType": "ABI",
+          "value": "arm64-v8a"
+        }
+      ],
+      "attributes": [],
+      "versionCode": 13003,
+      "versionName": "1.0.13",
+      "outputFile": "app-arm64-v8a-release.apk"
+    },
+    {
+      "type": "ONE_OF_MANY",
+      "filters": [
+        {
+          "filterType": "ABI",
+          "value": "x86"
+        }
+      ],
+      "attributes": [],
+      "versionCode": 13002,
+      "versionName": "1.0.13",
+      "outputFile": "app-x86-release.apk"
     }
   ],
   "elementType": "File"

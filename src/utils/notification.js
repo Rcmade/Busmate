@@ -1,6 +1,6 @@
 export const backgroundNotification = {
-  taskName: 'Busmets',
-  taskTitle: 'BusMets is Running',
+  taskName: 'Busmate',
+  taskTitle: 'Busmate is Running',
   taskDesc: '',
   taskIcon: {
     name: 'ic_launcher',

@@ -1,4 +1,4 @@
-package com.busmets;
+package com.busmate;
 
 import android.app.Application;
 import com.facebook.react.PackageList;

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'https://busmets.azurewebsites.net/api',
-  // baseURL: 'http://192.168.142.233:4444/api',
+  // baseURL: 'http://192.168.180.233:4444/api',
   withCredentials: true,
   headers: {
     Accept: 'application/json',

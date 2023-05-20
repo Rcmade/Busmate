@@ -47,7 +47,7 @@ const Header = () => {
     const logOut = await logout();
     dispatch(isLoggedIn(false));
     dispatch(userData({assigned: false, previous: null, wait: null}));
-    navigation.dispatch(StackActions.replace('Signup'));
+    navigation.dispatch(StackActions.replace('Login'));
   };
 
   const busOnChangeHander = async busNum => {
@@ -77,9 +77,9 @@ const Header = () => {
         <HStack w="100%" alignItems="center" justifyContent={'space-between'}>
           <Image
             size={'12'}
-            rounded={'full'}
+            // rounded={'lg'}
             source={require('../assets/logo.png')}
-            alt="BusMets"
+            alt="Busmate"
           />
           {user?.busNumber && (
             <Menu
@@ -136,7 +136,7 @@ const Header = () => {
                 <Image
                   size={'7'}
                   source={require('../assets/logout.png')}
-                  alt="BusMets"
+                  alt="Busmate"
                 />
                 <Text>Logout</Text>
               </Menu.Item>

@@ -1,4 +1,4 @@
-package com.busmets;
+package com.busmate;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -20,7 +20,7 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "Busmets";
+    return "Busmate";
   }
 
   /**

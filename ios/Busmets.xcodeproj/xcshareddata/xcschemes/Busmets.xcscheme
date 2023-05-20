@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "Busmets.app"
-               BlueprintName = "Busmets"
-               ReferencedContainer = "container:Busmets.xcodeproj">
+               BuildableName = "Busmate.app"
+               BlueprintName = "Busmate"
+               ReferencedContainer = "container:Busmate.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "BusmetsTests.xctest"
-               BlueprintName = "BusmetsTests"
-               ReferencedContainer = "container:Busmets.xcodeproj">
+               BuildableName = "BusmateTests.xctest"
+               BlueprintName = "BusmateTests"
+               ReferencedContainer = "container:Busmate.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Busmets.app"
-            BlueprintName = "Busmets"
-            ReferencedContainer = "container:Busmets.xcodeproj">
+            BuildableName = "Busmate.app"
+            BlueprintName = "Busmate"
+            ReferencedContainer = "container:Busmate.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Busmets.app"
-            BlueprintName = "Busmets"
-            ReferencedContainer = "container:Busmets.xcodeproj">
+            BuildableName = "Busmate.app"
+            BlueprintName = "Busmate"
+            ReferencedContainer = "container:Busmate.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

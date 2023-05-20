@@ -95,7 +95,7 @@ const TermsAndCondition = () => {
     {
       id: '16',
       condition:
-        'If you have any questions or concerns about these terms and conditions, please contact us at support@busmets.com.',
+        'If you have any questions or concerns about these terms and conditions, please contact us at support@busmate.com.',
     },
   ];
 
@@ -113,7 +113,7 @@ const TermsAndCondition = () => {
           <Modal.Body h="full">
             {data.map(d => {
               return (
-                <HStack  key={d.id} alignItems="center">
+                <HStack key={d.id} alignItems="center">
                   <Text color="coolGray.800" pr="1" bold>
                     {d.id}
                   </Text>

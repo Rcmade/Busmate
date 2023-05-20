@@ -93,13 +93,13 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.busmets"
+    namespace "com.busmate"
     defaultConfig {
-        applicationId "com.busmets"
+        applicationId "com.busmate"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 11
-        versionName "1.0.11"
+        versionCode 14
+        versionName "1.0.14"
         missingDimensionStrategy 'react-native-camera', 'mlkit' // <--- replace general with mlkit
     }
 
@@ -120,8 +120,8 @@ android {
         }
 
         release {
-            if (project.hasProperty('busmetsKeystore.jks')) {
-                storeFile file("busmetsKeystore.jks")
+            if (project.hasProperty('busmateKeystore.jks')) {
+                storeFile file("busmateKeystore.jks")
                 storePassword "#Rcmade@1234"
                 keyAlias rcmade
                 keyPassword "#Rcmade@1234"

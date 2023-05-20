@@ -1,4 +1,4 @@
-import {PermissionsAndroid, StyleSheet} from 'react-native';
+import {PermissionsAndroid, Platform, StyleSheet} from 'react-native';
 import React, {useEffect} from 'react';
 import PermissionComp from '../components/Permission';
 import {useNavigation, StackActions} from '@react-navigation/native';
@@ -14,9 +14,14 @@ const BackgroundLocation = () => {
       PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
     );
     if (granted) {
-      navigation.dispatch(StackActions.replace('Signup'));
+      navigation.dispatch(StackActions.replace('Login'));
     }
   };
+
+  if (Platform.Version < 26) {
+    navigation.dispatch(StackActions.replace('Login'));
+    return null;
+  }
 
   useEffect(() => {
     checkPermission();

@@ -1,4 +1,4 @@
-import {AppState} from 'react-native';
+import {AppState, Platform} from 'react-native';
 import React, {useEffect, useState, useRef, useCallback} from 'react';
 import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
 import {
@@ -8,7 +8,13 @@ import {
 } from '../permissions/location';
 import MapComponents from '../components/MapComponents';
 import {TASK_ID} from '../..';
-import {getPing, getStorage, setStorage} from '../utils/functions';
+import {
+  getExpiresStorage,
+  getPing,
+  getStorage,
+  setExpiresStorage,
+  setStorage,
+} from '../utils/functions';
 import {contributorState} from '../Store/Reducers/locationReducer';
 import {useDispatch, useSelector} from 'react-redux';
 import {changeContributor, getNewLocationRoute} from '../server';
@@ -26,19 +32,43 @@ const HomeScreen = () => {
   const [appState, setAppState] = useState(AppState.currentState);
   const toast = useToast();
   const isRun = +`${new Date().getHours()}.${new Date().getMinutes()}`;
-  const isRunNow = isRun < 9.1 && isRun > 5.9;
+  const isRunNow = isRun < 9.2 && isRun > 5.9;
   // Ask the user to give permission
   useEffect(() => {
     let cleanFunction = true;
     const permissions = async () => {
       if (await FineLocationPermission()) {
         if (await CoarseLocationPermission()) {
-          await BackgroundLocationPermission();
+          if (Platform.Version >= 26) {
+            await BackgroundLocationPermission();
+          }
         }
       }
     };
     cleanFunction && permissions();
+
     return () => (cleanFunction = false);
+  }, []);
+
+  // set the location coordinate when is comes from the server
+  useEffect(() => {
+    let cleanFunction = true;
+    // this is run when user close the app then all location state becomes empty on that time it will load previous location data from local  storage
+    const addOldLocation = async () => {
+      const getOldLocation = await getExpiresStorage('location');
+      if (
+        getOldLocation &&
+        Array.isArray(getOldLocation) &&
+        getOldLocation?.length > 2
+      ) {
+        setLocation(getOldLocation || []);
+      }
+    };
+
+    cleanFunction && addOldLocation();
+
+    return () => (cleanFunction = false);
+    return () => {};
   }, []);
 
   // Create Polyline for all User
@@ -54,6 +84,7 @@ const HomeScreen = () => {
       await setStorage('date', new Date(now.getTime() - 3000));
 
       if (data?.length) {
+        await setExpiresStorage('location', location, 1000 * 60 * 60);
         setLocation(pre => [...pre, ...data]);
       }
     }
@@ -108,17 +139,17 @@ const HomeScreen = () => {
     const startForeGround = async () => {
       ReactNativeForegroundService.start({
         id: TASK_ID,
-        title: 'BusMets',
+        title: 'Busmate',
         message: 'We will notify when your bus available',
         icon: 'ic_launcher',
       });
       if (isRunNow) {
       } else {
-        // await ReactNativeForegroundService.stopAll();
-        // toast.show({
-        //   description: 'No buses running at the moment',
-        //   placement: 'top',
-        // });
+        await ReactNativeForegroundService.stopAll();
+        toast.show({
+          description: 'No buses running at the moment',
+          placement: 'top',
+        });
       }
     };
 
@@ -146,12 +177,12 @@ const HomeScreen = () => {
             async position => {
               const currentTime =
                 +`${new Date().getHours()}.${new Date().getMinutes()}`;
-              const offApp = currentTime < 9.1 && currentTime > 5.9;
-              if (!offApp) {
-                await ReactNativeForegroundService.stopAll();
-                Geolocation.clearWatch(watchId);
-                clearInterval(intervalId);
-              }
+              const offApp = currentTime < 9.2 && currentTime > 5.9;
+              // if (!offApp) {
+              //   await ReactNativeForegroundService.stopAll();
+              //   // Geolocation.clearWatch(watchId);
+              //   clearInterval(intervalId);
+              // }
               // filter required data from position
               const locationData = {
                 latitude1: position.coords.latitude,
@@ -162,6 +193,8 @@ const HomeScreen = () => {
                 // _id: user && user._id, //640fb8398d2d666319a7b000
                 speed: position.coords.speed * 3.6,
               };
+
+              console.log(locationData);
 
               const {location} = await LocationService.changeLocation(
                 locationData,
@@ -209,19 +242,16 @@ const HomeScreen = () => {
             },
 
             error => {
-              console.log('Error: ', error);
-              const removeUser = async () => {
-                const isClosed = await changeContributor({
-                  _id: getUserData?.user?._id,
-                  busNumber: getUserData?.user?.busNumber,
-                });
-                if (isClosed.youAreDone === true) {
-                  await ReactNativeForegroundService.stopAll();
-                }
-              };
-
-              removeUser();
-              setTimeout(() => {}, 0);
+              if (error.code === 2) {
+                console.log('Error: ', error);
+                const removeUser = async () => {
+                  const isClosed = await changeContributor({
+                    _id: getUserData?.user?._id,
+                    busNumber: getUserData?.user?.busNumber,
+                  });
+                };
+                removeUser();
+              }
             },
             {
               // because the of accuracy
@@ -238,6 +268,7 @@ const HomeScreen = () => {
               forceRequestLocation: true,
               //Setting this to false will use the Google Play Services location API if available, which can provide more accurate location data.
               forceLocationManager: false,
+              showsBackgroundLocationIndicator: true,
             },
           );
         } catch (error) {
@@ -252,7 +283,7 @@ const HomeScreen = () => {
       },
     );
 
-    return () => Geolocation.clearWatch(watchId);
+    // return () => Geolocation.clearWatch(watchId);
   }, []);
 
   return (
