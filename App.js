@@ -30,6 +30,11 @@ const App = () => {
   useEffect(() => {
     const getInitial = async () => {
       // here if user already open and run this app and user navigate to the other page then this function will not call this api which prevent unnessecsery api calls
+      console.log(
+        isUserLoggedIn,
+        !isUserLoggedIn?.isLoggedIn ,
+        '......................................',
+      );
       const {data} = !isUserLoggedIn?.isLoggedIn && (await userInitialRoute());
       // console.log({data});
       dispatch(userData(data));
@@ -45,7 +50,6 @@ const App = () => {
         }
       }
     };
-
     getInitial();
     return () => {};
   }, []);

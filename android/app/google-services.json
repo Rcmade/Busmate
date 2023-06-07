@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "34011466636",
+    "project_id": "busmate-38b73",
+    "storage_bucket": "busmate-38b73.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:34011466636:android:2e276336c7f3bd414024a9",
+        "android_client_info": {
+          "package_name": "com.busmets"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "34011466636-gpcm5mir3hocjf9cl5qkfbc8ubbclebd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.busmets",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "34011466636-fp2u3tu1kin5mt7b572du29b1f23ti7e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAY_XJ-4VUgUQFRd0hxQy1Fn87qumaE29I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "34011466636-fp2u3tu1kin5mt7b572du29b1f23ti7e.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

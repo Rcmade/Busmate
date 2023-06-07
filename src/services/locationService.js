@@ -4,6 +4,9 @@ import {
   changeContributor,
 } from '../server';
 import {getPing} from '../utils/functions';
+import {throttle} from 'lodash';
+const throttledDispatch = throttle(changeContributor, 1000); // limit updates to once every second
+const throttledContributorDispatch = throttle(asignContributor, 1000); // limit updates to once every second
 
 class LocationService {
   location = {
@@ -61,7 +64,7 @@ class LocationService {
         ...user,
         ms: this.ping,
       };
-      const {data} = await asignContributor(this.busData);
+      const {data} = await throttledContributorDispatch(this.busData);
       console.log({data});
       if (data) {
         this.isAssigned = data;
@@ -84,7 +87,7 @@ class LocationService {
   }
   async changeTheContributor(userData) {
     if (this.isAssigned?.assigned) {
-      const {data} = await changeContributor(userData);
+      const {data} = await throttledDispatch(userData);
       this.isAddNewLocation = {
         previous: data.previous,
         wait: data.wait,

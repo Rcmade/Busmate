@@ -32,7 +32,7 @@ const HomeScreen = () => {
   const [appState, setAppState] = useState(AppState.currentState);
   const toast = useToast();
   const isRun = +`${new Date().getHours()}.${new Date().getMinutes()}`;
-  const isRunNow = isRun < 9.2 && isRun > 5.9;
+  const isRunNow = isRun < 10 && isRun > 5.9;
   // Ask the user to give permission
   useEffect(() => {
     let cleanFunction = true;
@@ -68,7 +68,6 @@ const HomeScreen = () => {
     cleanFunction && addOldLocation();
 
     return () => (cleanFunction = false);
-    return () => {};
   }, []);
 
   // Create Polyline for all User
@@ -177,12 +176,12 @@ const HomeScreen = () => {
             async position => {
               const currentTime =
                 +`${new Date().getHours()}.${new Date().getMinutes()}`;
-              const offApp = currentTime < 9.2 && currentTime > 5.9;
-              // if (!offApp) {
-              //   await ReactNativeForegroundService.stopAll();
-              //   // Geolocation.clearWatch(watchId);
-              //   clearInterval(intervalId);
-              // }
+              const offApp = currentTime < 10 && currentTime > 5.59;
+              if (!offApp) {
+                await ReactNativeForegroundService.stopAll();
+                // Geolocation.clearWatch(watchId);
+                clearInterval(intervalId);
+              }
               // filter required data from position
               const locationData = {
                 latitude1: position.coords.latitude,
@@ -245,7 +244,7 @@ const HomeScreen = () => {
               if (error.code === 2) {
                 console.log('Error: ', error);
                 const removeUser = async () => {
-                  const isClosed = await changeContributor({
+                  await changeContributor({
                     _id: getUserData?.user?._id,
                     busNumber: getUserData?.user?.busNumber,
                   });

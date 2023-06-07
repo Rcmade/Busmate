@@ -1,4 +1,4 @@
-package com.busmate;
+package com.busmets;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;

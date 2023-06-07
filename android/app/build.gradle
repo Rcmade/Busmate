@@ -93,13 +93,13 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.busmate"
+    namespace "com.busmets"
     defaultConfig {
-        applicationId "com.busmate"
+        applicationId "com.busmets"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 14
-        versionName "1.0.14"
+        versionCode 18
+        versionName "1.0.18"
         missingDimensionStrategy 'react-native-camera', 'mlkit' // <--- replace general with mlkit
     }
 
@@ -161,6 +161,8 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    // Import the Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:32.0.0')
 
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
 
