@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
-import {HStack, Input, Image, Icon, Pressable} from 'native-base';
-
+import {Image, View} from 'react-native';
+import {TextInput} from 'react-native-paper';
 const InputImage = ({
   imgUrl,
   placeHolder,
@@ -8,64 +8,78 @@ const InputImage = ({
   name,
   value,
   onChange,
+  colors,
+  fontSize,
   ...inp
 }) => {
-  //
-
   const [show, setShow] = React.useState(false);
 
   return (
     <>
-      <HStack space={3} my={2} justifyContent="center">
-        {imgUrl && (
+      <View
+        flexDirection="row"
+        padding={10}
+        marginVertical={5}
+        gap={5}
+        justifyContent="center"
+        alignItems="center">
+        <View style={{width: '10%'}}>
           <Image
-            // w="10%"
             size={12}
+            style={{
+              position: 'relative',
+              zIndex: 10,
+              width: 40,
+              height: 40,
+            }}
             source={imgUrl}
             alt={alt}
             resizeMethod="resize"
           />
-        )}
-        <Input
-          placeholderTextColor="trueGray.400"
-          variant="underlined"
-          w="90%"
-          fontSize={20}
-          fontWeight={'bold'}
-          placeholder={placeHolder}
-          // color="darkBlue.800"
-          name={name}
+        </View>
+        <TextInput
+          style={{
+            width: '90%',
+            fontWeight: 'bold',
+            fontSize: fontSize || 20,
+            overflowX: 'scroll',
+          }}
+          theme={{
+            colors: {
+              primary: colors.pWhiteBlue,
+              onSurfaceVariant: colors.pWhiteBlue,
+              surfaceVariant: 'transparent',
+            },
+            // backgroundColor: {},
+          }}
+          // secureTextEntry={!show}
+          type={name === 'password' ? (show ? 'text' : 'password') : 'text'}
+          right={
+            name === 'password' && (
+              <TextInput.Icon
+                name="no-eye"
+                icon={show ? 'eye' : 'eye-off'}
+                color={colors.pWhiteBlue}
+                style={{
+                  color: 'red',
+                  // backgroundColor: 'red',
+                }}
+                onPress={() => setShow(!show)}
+              />
+            )
+          }
           value={value}
           onChange={onChange}
-          minLength={3}
-          type={name === 'password' ? (show ? 'text' : 'password') : 'text'}
-          InputRightElement={
-            name === 'password' ? (
-              <Pressable onPress={() => setShow(!show)}>
-                <Icon
-                  as={
-                    // <MaterialIcons
-                    //   name={show ? 'visibility' : 'visibility-off'}
-                    // />
-                    <Image
-                      source={
-                        show
-                          ? require('../assets/visibility.png')
-                          : require('../assets/not-visible.png')
-                      }
-                      alt="Show"
-                    />
-                  }
-                  size={'7'}
-                  // color="black"
-                  // mr="2"
-                />
-              </Pressable>
-            ) : null
-          }
+          underlineColor={colors.pWhiteBlue}
+          textColor={colors.pBlackWhite}
+          mode="mode"
+          // placeholderTextColor="red"
+          label={placeHolder}
+          placeholder=""
+          backgroundColor={colors.pGrayWhite}
           {...inp}
         />
-      </HStack>
+      </View>
     </>
   );
 };

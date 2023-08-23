@@ -1,41 +1,49 @@
 {
   "project_info": {
-    "project_number": "34011466636",
-    "project_id": "busmate-38b73",
-    "storage_bucket": "busmate-38b73.appspot.com"
+    "project_number": "96263138237",
+    "project_id": "busmate-eaa7c",
+    "storage_bucket": "busmate-eaa7c.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:34011466636:android:2e276336c7f3bd414024a9",
+        "mobilesdk_app_id": "1:96263138237:android:199bf52fe342bdb58e80d4",
         "android_client_info": {
-          "package_name": "com.busmets"
+          "package_name": "com.busmate"
         }
       },
       "oauth_client": [
         {
-          "client_id": "34011466636-gpcm5mir3hocjf9cl5qkfbc8ubbclebd.apps.googleusercontent.com",
+          "client_id": "96263138237-4u6v5928l8kbjhqhno5drd6tpbmm3bvc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.busmets",
+            "package_name": "com.busmate",
+            "certificate_hash": "d88c77b1d648208a35339700fd985a75fa1c2469"
+          }
+        },
+        {
+          "client_id": "96263138237-c9ah6nmkfjmesjihjji3bco1ai5uh4ob.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.busmate",
             "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
           }
         },
         {
-          "client_id": "34011466636-fp2u3tu1kin5mt7b572du29b1f23ti7e.apps.googleusercontent.com",
+          "client_id": "96263138237-i4os0kp5vtrlcuvdav3vhnefhqts6562.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAY_XJ-4VUgUQFRd0hxQy1Fn87qumaE29I"
+          "current_key": "AIzaSyDS_-xhyo0tDZ8VFKr4PMc-NGRQUXgmeSU"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "34011466636-fp2u3tu1kin5mt7b572du29b1f23ti7e.apps.googleusercontent.com",
+              "client_id": "96263138237-i4os0kp5vtrlcuvdav3vhnefhqts6562.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

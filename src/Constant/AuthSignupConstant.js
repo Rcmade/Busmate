@@ -1,0 +1,8 @@
+export const SET_OTP_SENT = 'SET_OTP_SENT';
+export const SET_EMAIL_VERIFIED = 'SET_EMAIL_VERIFIED';
+export const SET_INPUT_VALUE = 'SET_INPUT_VALUE';
+export const SET_LOADING = 'SET_LOADING';
+export const SET_BARCODE = 'SET_BARCODE';
+export const SET_SELFIE = 'SET_SELFIE';
+export const SET_BARCODE_DATA = 'SET_BARCODE_DATA';
+export const SET_SHOW_MODAL = 'SET_SHOW_MODAL';

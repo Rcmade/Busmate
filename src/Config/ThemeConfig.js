@@ -1,0 +1,51 @@
+import {MD3LightTheme} from 'react-native-paper';
+
+export const lightTheme = {
+  ...MD3LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    pGrayBlue: '#00BFBF',
+    pWhiteBlue: '#00BFBF',
+    pGrayWhite: '#FFF',
+    pYellow: '#FFD400',
+    sYellow: '#FFC200',
+    pBlackWhite: 'black',
+    pBlue: '#00BFBF',
+    sGrayYellow: '#7b7b7b',
+    lightDarkGray: '#7B7B7B',
+    lightBluePGray: '#E8EFF5',
+    darkBlueLightGray: '#E8EFF5',
+    darkBlueGray: '#0E1420',
+    darkBlueLightWhite: 'rgba(205,205,205, 0.5)',
+    lightBlackWhite: 'rgba(205,205,205, 0.5)',
+    toastBlue: '#B9E6FD',
+    toastBlack: 'black',
+    toastInfo: '#026AA0',
+  },
+};
+
+export const darkTheme = {
+  ...MD3LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    toastBlue: '#B9E6FD',
+    toastInfo: '#026AA0',
+    toastBlack: 'black',
+    lightBlackWhite: 'rgba(0,0,0, 0.5)',
+    darkBlueLightWhite: 'rgba(14, 20, 32, 0.5)',
+    darkBlueGray: '#E8EFF5',
+    darkBlueLightGray: '#0E1420',
+    lightBluePGray: '#353535',
+    lightDarkGray: '#D6D6D6',
+    pBlackWhite: '#FFFF',
+    pWhiteBlue: '#FFF',
+    sGrayYellow: '#FFD400',
+    pGrayBlue: '#353535',
+    pGrayWhite: '#353535',
+    pYellow: '#FFD400',
+    sYellow: '#FFC200',
+    pWhite: '#FFFF',
+    pBlack: 'black',
+    pBlue: '#00BFBF',
+  },
+};

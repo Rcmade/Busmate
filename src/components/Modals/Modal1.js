@@ -1,5 +1,7 @@
-import {Button, FormControl, Input, Modal, Text} from 'native-base';
+import {View} from 'react-native';
 import CameraComponets from '../CameraComponets';
+import {Modal, Portal} from 'react-native-paper';
+import {Button, Card, Text} from 'react-native-paper';
 
 const Modal1 = ({
   showModal,
@@ -17,63 +19,59 @@ const Modal1 = ({
 }) => {
   return (
     <>
-      <Modal
-        isOpen={showModal}
-        onClose={() => {
-          setShowModal(false);
-          setisBarcode(false);
-          setisSelfie(false);
+      <Portal
+        style={{
+          zIndex: 1,
         }}>
-        <Modal.Content maxWidth="400px">
-          <Modal.CloseButton />
-          <Modal.Header>{title}</Modal.Header>
-          <Modal.Body>
-            <CameraComponets
-              cameraType={cameraType}
-              setBarcodeData={setBarcodeData}
-              cameraRef={cameraRef}
-              takePicture={takePicture}
-              setShowModal={setShowModal}
-            />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button.Group space={2}>
-              {barcodeData && (
+        <Modal
+          visible={showModal}
+          style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+          onDismiss={() => {
+            setShowModal(false);
+            setisBarcode(false);
+            setisSelfie(false);
+          }}>
+          <View>
+            <Card style={{paddingHorizontal: 34}}>
+              <Card.Content>
+                <Text variant="titleLarge">{title}</Text>
+                <View
+                  style={{
+                    height: 350,
+                  }}>
+                  <CameraComponets
+                    cameraType={cameraType}
+                    setBarcodeData={setBarcodeData}
+                    cameraRef={cameraRef}
+                    takePicture={takePicture}
+                    setShowModal={setShowModal}
+                    setisBarcode={setisBarcode}
+                  />
+                </View>
+              </Card.Content>
+              <Card.Actions>
+                {barcodeData && <Text>{barcodeData}</Text>}
+                <Button onPress={() => setShowModal(false)}>Cancel</Button>
                 <Button
-                  variant="ghost"
-                  colorScheme="blueGray"
-                  //   onPress={() => {
-                  //     setShowModal(false);
-                  //   }}
-                >
-                  {barcodeData}
+                  loading={isLoading}
+                  onPress={async () => {
+                    setisBarcode(false);
+                    if (isSelfie) {
+                      await takePicture('selfie', null);
+                    }
+                    setShowModal(false);
+                    setisSelfie(false);
+                  }}>
+                  Save
                 </Button>
-              )}
-              <Button
-                variant="ghost"
-                colorScheme="blueGray"
-                onPress={() => {
-                  setShowModal(false);
-                  setisBarcode(false);
-                  setisSelfie(false);
-                }}>
-                Cancel
-              </Button>
-              <Button
-                isLoading={isLoading}
-                onPress={async () => {
-                  setisBarcode(false);
-                  isSelfie && (await takePicture('selfie', null));
-                  setShowModal(false);
-                  setisSelfie(false);
-                }}>
-                {/* {barcodeData ? 'Click' : 'Wait'} */}
-                Save
-              </Button>
-            </Button.Group>
-          </Modal.Footer>
-        </Modal.Content>
-      </Modal>
+              </Card.Actions>
+            </Card>
+          </View>
+        </Modal>
+      </Portal>
     </>
   );
 };

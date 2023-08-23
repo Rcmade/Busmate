@@ -1,70 +1,77 @@
 import React from 'react';
-import {
-  Button,
-  useToast,
-  VStack,
-  HStack,
-  Text,
-  Center,
-  IconButton,
-  CloseIcon,
-  Alert,
-} from 'native-base';
+import {View} from 'react-native';
+import {useTheme, Text, Button} from 'react-native-paper';
 
-const Toast1 = ({id, status, variant, title, description, toast, ...rest}) => {
+const Toast1 = ({
+  id,
+  status,
+  variant,
+  title,
+  description,
+  toast,
+  onDismiss,
+  ...rest
+}) => {
+  const {colors} = useTheme();
+
+ 
   return (
-    <Alert
-      maxWidth="100%"
-      alignSelf="center"
-      flexDirection="row"
-      status={status ? status : 'info'}
-      variant={variant}
-      {...rest}>
-      <VStack space={1} flexShrink={1} w="100%">
-        <HStack
-          flexShrink={1}
-          alignItems="center"
-          justifyContent="space-between">
-          <HStack space={2} flexShrink={1} alignItems="center">
-            <Alert.Icon />
+    <View
+      style={{
+        maxWidth: '100%',
+        alignSelf: 'center',
+        flexDirection: 'row',
+        backgroundColor: 'transparent',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 10,
+      }}>
+      <View style={{flex: 1}}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+          <View style={{flexDirection: 'row', maxWidth: '90%'}}>
             <Text
-              fontSize="md"
-              fontWeight="medium"
-              flexShrink={1}
-              color={
-                variant === 'solid'
-                  ? 'lightText'
-                  : variant !== 'outline'
-                  ? 'darkText'
-                  : null
-              }>
+              variant="titleLarge"
+              style={{
+                fontWeight: 'bold',
+                marginRight: 8,
+                color: colors.toastInfo,
+              }}>
+              ⓘ
+            </Text>
+            <Text
+              variant="titleLarge"
+              style={{
+                color: colors.toastBlack,
+                fontWeight: 'bold',
+              }}>
               {title}
             </Text>
-          </HStack>
-          {/* {isClosable ? ( */}
-          <IconButton
-            variant="unstyled"
-            icon={<CloseIcon size="3" />}
-            _icon={{
-              color: variant === 'solid' ? 'lightText' : 'darkText',
-            }}
-            onPress={() => toast.close(id)}
-          />
-          {/* ) : null} */}
-        </HStack>
+          </View>
+
+          <Button onPress={onDismiss} rippleColor="#6B7280">
+            <Text
+              variant="titleLarge"
+              style={{
+                color: '#353535',
+              }}>
+              X
+            </Text>
+          </Button>
+        </View>
         <Text
-          px="6"
-          color={
-            variant === 'solid'
-              ? 'lightText'
-              : variant !== 'outline'
-              ? 'darkText'
-              : null
-          }>
+          style={{
+            marginTop: 5,
+            color: colors.toastBlack,
+          }}>
           {description}
         </Text>
-      </VStack>
-    </Alert>
+      </View>
+    </View>
   );
 };
 

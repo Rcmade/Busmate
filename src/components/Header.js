@@ -1,186 +1,139 @@
-import {StyleSheet, TouchableOpacity} from 'react-native';
-import React, {useState} from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {
-  HStack,
-  Text,
-  Box,
-  Image,
-  Menu,
-  Select,
-  CheckIcon,
-  AlertDialog,
-  Button,
-  Alert,
-  useToast,
-} from 'native-base';
-import {logout, updateUser} from '../server';
-import {useDispatch} from 'react-redux';
-import {isLoggedIn, userData} from '../Store/Reducers/authUser';
+import {View, StatusBar, Image} from 'react-native';
+import React, {useEffect, useState} from 'react';
+// import {} from 'react-native-safe-area-context';
+
 import {useNavigation, StackActions} from '@react-navigation/native';
-import {useSelector} from 'react-redux';
-import Alerts1 from './Alerts/Alerts1';
+import {useAuthUser} from '../Context/AuthUserContext';
+import {logout, updateUser} from '../Server';
+import {useAssignContributor} from '../Context/AssignContributorContext';
+import {useAppFeature} from '../Context/AppFeatureContext';
+import {
+  SET_CONTRIBUTOR_STATE,
+  SET_IS_LOGGED_IN,
+  SET_USER_DATA,
+} from '../Constant/UserConstant';
+import {Appbar, useTheme} from 'react-native-paper';
+import SideBar from './SideBar';
+import {useRoute} from '@react-navigation/native';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
+
 const Header = () => {
-  const dispatch = useDispatch();
+  const {authUserState, authUserDispatch} = useAuthUser();
   const navigation = useNavigation();
-  const user = useSelector(state => state.authUser?.user);
+  const {assignContributorDispatch} = useAssignContributor();
   const [busNumber, setBusNumber] = useState(null);
   const sevenDayToUpdate = 1000 * 60 * 60 * 24 * 7;
-  const [updateConfirm, setUpdateConfirm] = useState(false);
-  const toast = useToast();
+
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [position, setPosition] = useState('relative');
+  const {appFeatureState} = useAppFeature();
+  const route = useRoute();
+
+  useEffect(() => {
+    if (route.name === 'Home') {
+      setPosition('absolute');
+    } else {
+      setPosition('relative');
+    }
+    return () => {};
+  }, [route.name]);
 
   const [isOpen, setIsOpen] = React.useState(false);
 
   const cancelRef = React.useRef(null);
 
-  const timeSinceLastUpdate = Date.now() - new Date(user?.updatedAt).getTime();
+  const timeSinceLastUpdate =
+    Date.now() - new Date(authUserState?.updatedAt).getTime();
   const isUpdate = sevenDayToUpdate > timeSinceLastUpdate;
 
   const remainDayToUpdate = Math.floor(
-    (Date.now() - new Date(user?.updatedAt)) / (1000 * 60 * 60 * 24),
+    (Date.now() - new Date(authUserState?.updatedAt)) / (1000 * 60 * 60 * 24),
   );
 
   const totalNumOfBus = 25;
   const arrOfBus = Array.from({length: totalNumOfBus}, (_, i) => i + 1);
 
+  // Logout User
   const logOutHandler = async () => {
-    const logOut = await logout();
-    dispatch(isLoggedIn(false));
-    dispatch(userData({assigned: false, previous: null, wait: null}));
+    const {data} = await logout();
+    await GoogleSignin.signOut();
+    authUserDispatch({
+      type: SET_USER_DATA,
+      payload: {
+        isLoggedIn: false,
+      },
+    });
+    authUserDispatch({type: SET_IS_LOGGED_IN, payload: false});
+    assignContributorDispatch({
+      type: SET_CONTRIBUTOR_STATE,
+      payload: {assigned: false, previous: null, wait: null},
+    });
     navigation.dispatch(StackActions.replace('Login'));
   };
 
-  const busOnChangeHander = async busNum => {
-    setBusNumber(busNum);
-    setIsOpen(true);
-  };
-
-  const onUpdate = async () => {
-    console.log({busNumber});
+  const onBusNumberUpdateSubmit = async () => {
     const {data} = await updateUser({
       busNumber: +busNumber,
     });
-    dispatch(userData({user: data.user}));
+
+    authUserDispatch({
+      type: SET_USER_DATA,
+      payload: data.user,
+    });
     return setIsOpen(false);
   };
+  const {colors} = useTheme();
 
+  const toggleSideBar = () => {
+    setShowSidebar(!showSidebar);
+  };
   return (
-    <SafeAreaView>
-      <Box safeAreaTop bg="violet.600" />
-      <HStack
-        bg="white"
-        px="5"
-        // py="-3"
-        justifyContent="space-between"
-        alignItems="center"
-        w="100%">
-        <HStack w="100%" alignItems="center" justifyContent={'space-between'}>
+    <View>
+      <StatusBar
+        backgroundColor={colors.lightBluePGray}
+        barStyle={
+          appFeatureState.theme === 'dark' ? 'light-content' : 'dark-content'
+        }
+      />
+      <Appbar.Header
+        // elevation={2}
+        style={{
+          backgroundColor:
+            position === 'absolute'
+              ? colors.lightBlackWhite
+              : colors.lightBluePGray,
+          position: position,
+          width: '100%',
+        }}>
+        <View
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
           <Image
-            size={'12'}
-            // rounded={'lg'}
-            source={require('../assets/logo.png')}
-            alt="Busmate"
+            source={require('../assets/logoTransparent.png')}
+            style={{width: 45, height: 45}}
           />
-          {user?.busNumber && (
-            <Menu
-              trigger={triggerProps => {
-                return (
-                  <TouchableOpacity
-                    accessibilityLabel="More options menu"
-                    {...triggerProps}>
-                    <Text fontWeight={'bold'} p="2" fontSize="2xl">
-                      ☰
-                    </Text>
-                  </TouchableOpacity>
-                );
-              }}>
-              {/* <Menu.Item onPress={() => navigation.navigate('ErrorLogs')}>
-                <Text>Error logs</Text>
-              </Menu.Item> */}
+          <Appbar.Action
+            icon="menu"
+            onPress={toggleSideBar}
+            color={colors.pBlackWhite}
+          />
+        </View>
+      </Appbar.Header>
 
-              <Menu.Item
-                onPress={() => {
-                  isUpdate &&
-                    toast.show({
-                      description: `you will not be able to update your bus number for ${
-                        7 - +remainDayToUpdate || 7
-                      }  days`,
-                      placement: 'top',
-                    });
-                }}>
-                <Select
-                  isDisabled={isUpdate}
-                  selectedValue={busNumber || String(user?.busNumber)}
-                  minWidth="150"
-                  defaultValue={String(user?.busNumber)}
-                  accessibilityLabel="Choose Service"
-                  placeholder="Choose BusNumber"
-                  _selectedItem={{
-                    bg: 'teal.600',
-                    endIcon: <CheckIcon size="2" />,
-                  }}
-                  onValueChange={busOnChangeHander}>
-                  {arrOfBus.map(a => {
-                    return (
-                      <Select.Item
-                        key={a}
-                        label={String(a)}
-                        value={String(a)}
-                      />
-                    );
-                  })}
-                </Select>
-              </Menu.Item>
-
-              <Menu.Item onPress={logOutHandler}>
-                <Image
-                  size={'7'}
-                  source={require('../assets/logout.png')}
-                  alt="Busmate"
-                />
-                <Text>Logout</Text>
-              </Menu.Item>
-            </Menu>
-          )}
-        </HStack>
-      </HStack>
-
-      <AlertDialog
-        leastDestructiveRef={cancelRef}
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}>
-        <AlertDialog.Content>
-          <AlertDialog.Header>
-            <Alert w="100%" status="warning">
-              <HStack space={2} w="full" alignItems="center" flexShrink={1}>
-                <Alert.Icon mt="1" />
-                <Text fontSize="md" color="coolGray.800">
-                  Warning
-                </Text>
-              </HStack>
-            </Alert>
-          </AlertDialog.Header>
-          <AlertDialog.Body>
-            After update, you will not be able to update your bus number for 7
-            days
-          </AlertDialog.Body>
-          <AlertDialog.Footer>
-            <Button.Group space={2}>
-              <Button
-                variant="unstyled"
-                colorScheme="coolGray"
-                onPress={() => setIsOpen(false)}
-                ref={cancelRef}>
-                Cancel
-              </Button>
-              <Button colorScheme="danger" onPress={onUpdate}>
-                Update
-              </Button>
-            </Button.Group>
-          </AlertDialog.Footer>
-        </AlertDialog.Content>
-      </AlertDialog>
-    </SafeAreaView>
+      {showSidebar && (
+        <SideBar
+          logOutHandler={logOutHandler}
+          user={authUserState?.user}
+          toggleSideBar={toggleSideBar}
+          navigation={navigation}
+        />
+      )}
+      {/* <SideBar toggleSideBar={toggleSideBar} /> */}
+    </View>
   );
 };
 

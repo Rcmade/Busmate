@@ -1,77 +1,131 @@
-import React, {useEffect, useLayoutEffect} from 'react';
-import HomeScreen from './src/screens/HomeScreen';
+import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {useNavigation, StackActions} from '@react-navigation/native';
-import Signup from './src/screens/Signup';
-import Login from './src/screens/Login';
-import Wait from './src/screens/Wait';
-import {userInitialRoute} from './src/server';
-import {useDispatch, useSelector} from 'react-redux';
-import {isLoggedIn, userData} from './src/Store/Reducers/authUser';
-import Header from './src/components/Header';
-import ForgetPassword from './src/screens/ForgetPassword';
-import FineLocation from './src/screens/FineLocation';
-import BackgroundLocation from './src/screens/BackgroundLocation';
-import {LogBox} from 'react-native';
+// import InitialLoader from './src/Screens/PermissionScreen/InitialLoader';
+// import FineLocation from './src/Screens/PermissionScreen/FineLocation';
+// import Login from './src/Screens/Auth/Login';
+// import Wait from './src/Screens/Auth/Wait';
+// import ForgetPassword from './src/Screens/Auth/ForgetPassword';
+// import BackgroundLocation from './src/Screens/PermissionScreen/BackgroundLocation';
+// import HomeScreen from './src/Screens/AppFeatures/HomeScreen';
+// import Header from './src/components/Header';
+import {register} from 'react-native-bundle-splitter';
+import {Portal, Snackbar, useTheme} from 'react-native-paper';
+import {useAppFeature} from './src/Context/AppFeatureContext';
+import {SHOW_TOAST} from './src/Constant/AppConstant';
+
+const Toast1 = register({
+  loader: () => import('./src/components/Toast/Toast1'),
+});
+
+const InitialLoader = register({
+  loader: () => import('./src/Screens/PermissionScreen/InitialLoader'),
+});
+const Header = register({loader: () => import('./src/components/Header')});
+
+const Login = register({
+  loader: () => import('./src/Screens/Auth/Login'),
+});
+
+const Profile = register({
+  loader: () => import('./src/Screens/Auth/Profile'),
+});
+
+const Signup = register({
+  loader: () => import('./src/Screens/Auth/Signup'),
+});
+
+const Wait = register({
+  loader: () => import('./src/Screens/Auth/Wait'),
+});
+
+const BackgroundLocation = register({
+  loader: () => import('./src/Screens/PermissionScreen/BackgroundLocation'),
+});
+
+const HomeScreen = register({
+  loader: () => import('./src/Screens/AppFeatures/HomeScreen'),
+});
+
+const FineLocation = register({
+  loader: () => import('./src/Screens/PermissionScreen/FineLocation'),
+});
 
 const App = () => {
-  LogBox.ignoreLogs([
-    'We can not support a function callback. See Github Issues for details https://github.com/adobe/react-spectrum/issues/2320',
-  ]);
-  LogBox.ignoreLogs([
-    'Warning: Failed prop type: Invalid props.style key `color` supplied to `Image`.',
-  ]);
-
-  const dispatch = useDispatch();
-  const navigation = useNavigation();
-  const isUserLoggedIn = useSelector(state => state.authUser);
-
-  // When user open the app this function will invocke and get the user detail to login if the user already loging
-  useEffect(() => {
-    const getInitial = async () => {
-      // here if user already open and run this app and user navigate to the other page then this function will not call this api which prevent unnessecsery api calls
-      console.log(
-        isUserLoggedIn,
-        !isUserLoggedIn?.isLoggedIn ,
-        '......................................',
-      );
-      const {data} = !isUserLoggedIn?.isLoggedIn && (await userInitialRoute());
-      // console.log({data});
-      dispatch(userData(data));
-      if (data?.user) {
-        dispatch(isLoggedIn(true));
-        console.log(data);
-        // If user not authenticated by the admin then the user redirected to the Wait Page
-        if (data?.user?.isAuthenticated === false) {
-          navigation.dispatch(StackActions.replace('Wait'));
-          // If user authenticated by the admin then the user redirected to the main Home Page
-        } else if (data?.user?.isAuthenticated === true) {
-          navigation.dispatch(StackActions.replace('Home'));
-        }
-      }
-    };
-    getInitial();
-    return () => {};
-  }, []);
-
   const Stack = createNativeStackNavigator();
-
+  const {
+    appFeatureState: {toast},
+    appFeatureDispatch,
+  } = useAppFeature();
+  const {colors} = useTheme();
   return (
     <>
-      <Header />
+      <Portal
+        style={{
+          zIndex: 2,
+          position: 'relative',
+        }}>
+        <Snackbar
+          visible={toast.visiblity}
+          onDismiss={() =>
+            appFeatureDispatch({
+              type: SHOW_TOAST,
+              payload: {
+                visiblity: false,
+                title: '',
+                description: '',
+              },
+            })
+          }
+          style={{
+            backgroundColor: colors.toastBlue,
+            position: 'relative',
+            zIndex: 1000,
+          }}>
+          <Toast1
+            title={toast?.title}
+            description={toast?.description}
+            variant={toast?.variant}
+            status={toast?.status}
+            onDismiss={() =>
+              appFeatureDispatch({
+                type: SHOW_TOAST,
+                payload: {
+                  visiblity: false,
+                  title: '',
+                  description: '',
+                },
+              })
+            }
+          />
+        </Snackbar>
+      </Portal>
       <Stack.Navigator
-        screenOptions={{headerShown: false}}
-        initialRouteName={'FineLocation'}>
-        <Stack.Screen name="Home" component={HomeScreen} />
+        screenOptions={{
+          header: props => <Header {...props} />,
+        }}
+        initialRouteName={'Initial'}>
+        <Stack.Screen
+          name="Initial"
+          options={{
+            headerShown: false,
+          }}
+          component={InitialLoader}
+        />
+        {/* Location Permission Screen */}
         <Stack.Screen name="FineLocation" component={FineLocation} />
+
+        {/*  User Authentication screen */}
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Signup" component={Signup} />
+        <Stack.Screen name="Wait" component={Wait} />
         <Stack.Screen
           name="BackgroundLocation"
           component={BackgroundLocation}
         />
-        <Stack.Screen name="Signup" component={Signup} />
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Wait" component={Wait} />
-        <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
+
+        {/* User Screen */}
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Profile" component={Profile} />
       </Stack.Navigator>
     </>
   );

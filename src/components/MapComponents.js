@@ -1,9 +1,10 @@
-import {StyleSheet, Image} from 'react-native';
+import {StyleSheet, Image, View} from 'react-native';
 import React, {useEffect, useState, useRef} from 'react';
 import MapView, {Marker} from 'react-native-maps';
 import MapPolyLineCompnent from './MapPolyLineCompnent';
-import {Text, View} from 'native-base';
-// import {Image} from 'native-base';
+import {darkMapStyles} from '../Config/MapConfig';
+import {Text, useTheme} from 'react-native-paper';
+import {useAppFeature} from '../Context/AppFeatureContext';
 
 const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
   // console.log({trackingLineCoordinates});
@@ -37,6 +38,8 @@ const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
 
   //   }
   // }, [])
+
+  const {appFeatureState} = useAppFeature();
 
   useEffect(() => {
     const getLastPosition = trackingLineCoordinates?.slice(-1)[0];
@@ -76,17 +79,32 @@ const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
     // return () => clearInterval(intervalId);
   }, [trackingLineCoordinates]);
 
+  const {colors} = useTheme();
+
   return (
     <>
-      <View w="full" h="full">
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+        }}>
         <MapView
           ref={mapRef}
           showsUserLocation={true}
           style={StyleSheet.absoluteFill}
           // minZoomLevel={10}
+          customMapStyle={
+            appFeatureState?.theme === 'dark' ? darkMapStyles : []
+          }
+          mapPadding={{
+            top: 50, // Adjust this value to move the My Location button up/down
+          }}
           showsMyLocationButton={true}
           onRegionChange={setInitialRegion}
+          showsIndoors={true}
+          showsBuildings={true}
           showsCompass={true}
+          loadingEnabled={true}
           initialRegion={initialRegion}>
           {trackingLineCoordinates && (
             <MapPolyLineCompnent
@@ -116,20 +134,29 @@ const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
         </MapView>
 
         <View
-          p="3"
-          position={'absolute'}
-          bottom="20"
-          borderRadius={'2'}
           // h="full"
           style={{
-            // backgroundColor: 'blue',
-            backgroundColor: 'rgba(205,205,205, 0.5)',
+            borderRadius: 2,
+            padding: 2,
+            position: 'absolute',
+            bottom: 50,
+            backgroundColor: colors.darkBlueLightWhite,
           }}>
-          <View flexDirection={'row'}>
-            <Text fontSize={'md'} fontWeight="bold" color="black">
+          <View style={{flexDirection: 'row', padding: 4}}>
+            <Text
+              variant="titleMedium"
+              style={{
+                fontWeight: 'bold',
+                color: colors.pBlackWhite,
+              }}>
               Last Location:{' '}
             </Text>
-            <Text fontSize={'md'} fontWeight="extrabold" color="red.500">
+            <Text
+              variant="titleMedium"
+              style={{
+                fontWeight: 'bold',
+                color: '#FF0000',
+              }}>
               {lastLocationRef || 'Not connected'}
             </Text>
           </View>
