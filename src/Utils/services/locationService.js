@@ -5,8 +5,9 @@ import {
 } from '../../Server';
 import {throttle} from 'lodash';
 const throttledDispatch = throttle(changeContributor, 1000); // limit updates to once every second
+const throttledAddNewLocationDispatch = throttle(addNewLocationApi, 1000); // limit updates to once every second
 const throttledContributorDispatch = throttle(asignContributor, 1000); // limit updates to once every second
-import NetworkService from './netService'
+import NetworkService from './netService';
 class LocationService {
   location = {
     speed: 0,
@@ -57,14 +58,13 @@ class LocationService {
 
   async assignLocationContributor(user) {
     if (this.isAssignedNow && !this.isAssigned?.assigned) {
-      console.log('Inside');
+      console.log('Insides');
       this.busData = {
         ...this.location,
         ...user,
         ms: this.ping,
       };
       const {data} = await throttledContributorDispatch(this.busData);
-      console.log({data});
       if (data) {
         this.isAssigned = data;
       }
@@ -75,7 +75,10 @@ class LocationService {
   }
 
   async addNewLocation(userBusData) {
-    const {data} = await addNewLocationApi({...userBusData, ms: this.ping});
+    const {data} = await throttledAddNewLocationDispatch({
+      ...userBusData,
+      ms: this.ping,
+    });
     this.isAddNewLocation = {
       previous: data.previous,
       wait: data.wait,

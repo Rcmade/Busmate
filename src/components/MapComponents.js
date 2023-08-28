@@ -20,24 +20,17 @@ const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
   const [lastLocationRef, setLastLocationRef] = useState('');
   const [markerSize, setMarkerSize] = useState({width: 0, height: 0});
 
-  const handleLayout = event => {
-    const {width, height} = event.nativeEvent.layout;
-    const markerSize = Math.min(width, height) * 0.9;
-    setMarkerSize({width: markerSize, height: markerSize});
-  };
+  // const handleLayout = event => {
+  //   const {width, height} = event.nativeEvent.layout;
+  //   const markerSize = Math.min(width, height) * 0.9;
+  //   setMarkerSize({width: markerSize, height: markerSize});
+  // };
 
   const [heading, setHeading] = useState('0');
   const [markerCoordinate, setMarkerCoordinate] = useState({
     latitude: 22.719459654294255,
     longitude: 75.857048307291,
   });
-
-  // useEffect(() => {
-  //   console.log({ trackingLineCoordinates });
-  //   return () => {
-
-  //   }
-  // }, [])
 
   const {appFeatureState} = useAppFeature();
 
@@ -56,14 +49,13 @@ const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
           );
         }
         setHeading(getLastPosition.heading);
-        console.log('Inside Region');
         mapRef.current.animateToRegion(
           {
             latitude: getLastPosition.latitude,
             longitude: getLastPosition.longitude,
             heading: getLastPosition.heading,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
+            latitudeDelta: 0.02,
+            longitudeDelta: 0.02,
           },
           4000,
         );
@@ -100,7 +92,7 @@ const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
             top: 50, // Adjust this value to move the My Location button up/down
           }}
           showsMyLocationButton={true}
-          onRegionChange={setInitialRegion}
+          // onRegionChange={setInitialRegion}
           showsIndoors={true}
           showsBuildings={true}
           showsCompass={true}
@@ -124,7 +116,7 @@ const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
                 source={require('../assets/BusMarker.png')}
                 style={[
                   styles.marker,
-                  markerSize,
+                  {width: 0, height: 0},
                   {transform: [{rotate: `${heading}deg`}]},
                 ]}
                 alt="Your Bus Is Here"

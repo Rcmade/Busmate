@@ -10,6 +10,7 @@ import {updateUser} from '../../Server';
 import {useAppFeature} from '../../Context/AppFeatureContext';
 import {SET_USER_DATA} from '../../Constant/UserConstant';
 import {SHOW_TOAST} from '../../Constant/AppConstant';
+import LocationService from '../../Utils/services/locationService';
 
 const Profile = () => {
   const navigation = useNavigation();
@@ -55,35 +56,74 @@ const Profile = () => {
   const formSubmitHandler = async () => {
     try {
       setIsLoading(true);
-      const {data} = await updateUser({
-        name: inputValue.name,
-        busNumber: inputValue.busNumber,
-        _id: authUserState?.user?._id,
-      });
-      if (data?.user) {
-        setIsUpdate(false);
-        authUserDispatch({type: SET_USER_DATA, payload: data.user});
-        appFeatureDispatch({
+
+      if (!LocationService?.isAssigned?.assigned) {
+        if (!inputValue.name) {
+          setIsLoading(false);
+          return appFeatureDispatch({
+            type: SHOW_TOAST,
+            payload: {
+              visiblity: true,
+              description: 'Please add your name ',
+              title: 'Field Error',
+              status: 'error',
+            },
+          });
+        }
+
+        if (!inputValue.busNumber) {
+          setIsLoading(false);
+          return appFeatureDispatch({
+            type: SHOW_TOAST,
+            payload: {
+              visiblity: true,
+              description: 'Please add your Bus Number ',
+              title: 'Field Error',
+              status: 'error',
+            },
+          });
+        }
+        const {data} = await updateUser({
+          name: inputValue.name,
+          busNumber: inputValue.busNumber,
+          _id: authUserState?.user?._id,
+        });
+        if (data?.user) {
+          setIsUpdate(false);
+          authUserDispatch({type: SET_USER_DATA, payload: data.user});
+          appFeatureDispatch({
+            type: SHOW_TOAST,
+            payload: {
+              visiblity: true,
+              description: data?.message,
+              title: 'Notification',
+              status: 'error',
+            },
+          });
+        } else if (data?.error) {
+          appFeatureDispatch({
+            type: SHOW_TOAST,
+            payload: {
+              visiblity: true,
+              description: data?.error,
+              title: 'Error',
+              status: 'error',
+            },
+          });
+
+          return;
+        }
+      } else {
+        return appFeatureDispatch({
           type: SHOW_TOAST,
           payload: {
             visiblity: true,
-            description: data?.message,
+            description:
+              'Profile updates unavailable at this time. Make changes after some time!',
             title: 'Notification',
             status: 'error',
           },
         });
-      } else if (data?.error) {
-        appFeatureDispatch({
-          type: SHOW_TOAST,
-          payload: {
-            visiblity: true,
-            description: data?.error,
-            title: 'Error',
-            status: 'error',
-          },
-        });
-
-        return;
       }
     } catch (error) {
       console.log(JSON.stringify(error));

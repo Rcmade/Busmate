@@ -23,31 +23,20 @@ import Geolocation from 'react-native-geolocation-service';
 import {useAuthUser} from '../../Context/AuthUserContext';
 import {LocationConfig} from '../../Config/LocationConfig';
 import {useAppFeature} from '../../Context/AppFeatureContext';
+import RunnigSevice from '../../Utils/services/runningService';
 
 const HomeScreen = () => {
   const mapRef = useRef(null);
-  const [location, setLocation] = useState([]);
+  const [location, setLocation] = useState({});
   const {authUserState} = useAuthUser();
   const [appState, setAppState] = useState(AppState.currentState);
   const {appFeatureDispatch, appFeatureState} = useAppFeature();
 
-  const startTime = new Date(appFeatureState?.isServiceAvailable?.startTime);
-  const endTime = new Date(appFeatureState?.isServiceAvailable?.endTime);
+  const startTime = appFeatureState?.isServiceAvailable?.startTime;
+  const endTime = appFeatureState?.isServiceAvailable?.endTime;
+  const isRunNow = RunnigSevice.getAvailability(startTime, endTime);
+  const getPreviousDayLocation = async () => {};
 
-  const startHourMinute = +`${startTime.getHours()}.${startTime.getMinutes()}`;
-  const endHourMinute = +`${endTime.getHours()}.${endTime.getMinutes()}`;
-
-  const isRun = +`${new Date().getHours()}.${new Date().getMinutes()}`;
-  const isRunNow = isRun <= endHourMinute && isRun >= startHourMinute;
-
-  console.log({
-    startTime,
-    endTime,
-    startHourMinute,
-    endHourMinute,
-    isRun,
-    isRunNow,
-  });
   // Ask the user to give permission
   useEffect(() => {
     let cleanFunction = true;
@@ -74,12 +63,8 @@ const HomeScreen = () => {
     // this is run when user close the app then all location state becomes empty on that time it will load previous location data from local  storage
     const addOldLocation = async () => {
       const getOldLocation = await getExpiresStorage('location');
-      if (
-        getOldLocation &&
-        Array.isArray(getOldLocation) &&
-        getOldLocation?.length > 2
-      ) {
-        setLocation(getOldLocation || []);
+      if (getOldLocation) {
+        setLocation(getOldLocation || {});
       }
     };
 
@@ -87,6 +72,17 @@ const HomeScreen = () => {
 
     return () => (cleanFunction = false);
   }, []);
+
+  // this will add the location data in the local storage
+  useEffect(() => {
+    let mounted = true;
+    const persistLocationData = async () => {
+      await setExpiresStorage('location', location, 1000 * 60 * 60);
+    };
+
+    mounted && persistLocationData();
+    return () => (mounted = false);
+  }, [location]);
 
   // Create Polyline for all User
   const getLocation = useCallback(async () => {
@@ -96,13 +92,20 @@ const HomeScreen = () => {
         // get last date , when user location data form the server at that time we store the last time so that we get that location which is not take by user , if user take all location before 9 am the we transfer only after 9 am location of bus
         const getDate = await getStorage('date');
         const {data} = await getNewLocationRoute({
-          date: getDate || new Date(),
+          date: getDate,
           busNumber: authUserState?.user?.busNumber,
         });
+
         await setStorage('date', new Date(now.getTime() - 3000));
         if (data?.length) {
-          await setExpiresStorage('location', location, 1000 * 60 * 60);
-          setLocation(pre => [...pre, ...data]);
+          setLocation(pre => {
+            const existingArray = pre[authUserState.user.busNumber] || [];
+
+            return {
+              ...pre,
+              [authUserState.user.busNumber]: [...existingArray, ...data],
+            };
+          });
         }
       }
     } catch (error) {}
@@ -149,7 +152,7 @@ const HomeScreen = () => {
     };
 
     // this the depencies of the function when we want to call this useeffects function
-  }, [appState]);
+  }, [appState, authUserState]);
 
   // start forground services so that the app work even in the background or forground services
   useEffect(() => {
@@ -284,7 +287,7 @@ const HomeScreen = () => {
       <MapComponents
         mapRef={mapRef}
         user={authUserState?.user}
-        trackingLineCoordinates={location}
+        trackingLineCoordinates={location[authUserState.user.busNumber] || []}
       />
     </>
   );
