@@ -16,8 +16,7 @@ import ScreenWraper from '../../components/Layout/ScreenWraper';
 import {useTheme, Text, Button} from 'react-native-paper';
 
 import {useAppFeature} from '../../Context/AppFeatureContext';
-import { SHOW_TOAST } from '../../Constant/AppConstant';
-
+import {SHOW_TOAST} from '../../Constant/AppConstant';
 
 const Login = () => {
   const navigation = useNavigation();
@@ -42,7 +41,10 @@ const Login = () => {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       if (userInfo) {
-        const {data} = await loginRoute({email: userInfo.user.email});
+        const {data} = await loginRoute({
+          email: userInfo.user.email,
+          idToken: userInfo.idToken,
+        });
         if (data?.user) {
           authUserDispatch({type: SET_IS_LOGGED_IN, payload: true});
           authUserDispatch({type: SET_USER_DATA, payload: data.user});
@@ -107,7 +109,6 @@ const Login = () => {
 
   return (
     <ScreenWraper>
-
       <ScrollView height="100%">
         <View style={styles.container}></View>
         <View>

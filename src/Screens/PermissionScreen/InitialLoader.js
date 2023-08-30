@@ -8,13 +8,13 @@ import {useAuthUser} from '../../Context/AuthUserContext';
 import {SET_IS_LOGGED_IN, SET_USER_DATA} from '../../Constant/UserConstant';
 import {getAvailableTime, userInitialRoute} from '../../Server';
 import {WEB_CLIENT_ID} from '../../Config/ClientConfig';
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {useAppFeature} from '../../Context/AppFeatureContext';
-import {APP_FEATURE_SERVICE, SHOW_TOAST, TOGGLE_THEME} from '../../Constant/AppConstant';
+import {
+  APP_FEATURE_SERVICE,
+  SHOW_TOAST,
+  TOGGLE_THEME,
+} from '../../Constant/AppConstant';
 
 import ThemeSwitch from '../../components/Buttons/ThemeSwitch';
 import {getThemedColor} from '../../Utils/ThemeUtils';

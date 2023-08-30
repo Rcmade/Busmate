@@ -77,6 +77,7 @@ const Signup = () => {
         setInputValue(pre => ({
           ...pre,
           ...userInfo?.user,
+          idToken: userInfo.idToken,
         }));
 
         await GoogleSignin.signOut();
