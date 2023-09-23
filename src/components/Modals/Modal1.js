@@ -16,6 +16,7 @@ const Modal1 = ({
   setisBarcode,
   setisSelfie,
   isSelfie,
+  isBarcode,
 }) => {
   return (
     <>
@@ -54,19 +55,23 @@ const Modal1 = ({
               </Card.Content>
               <Card.Actions>
                 {barcodeData && <Text>{barcodeData}</Text>}
-                <Button onPress={() => setShowModal(false)}>Cancel</Button>
-                <Button
-                  loading={isLoading}
-                  onPress={async () => {
-                    setisBarcode(false);
-                    if (isSelfie) {
-                      await takePicture('selfie', null);
-                    }
-                    setShowModal(false);
-                    setisSelfie(false);
-                  }}>
-                  Save
-                </Button>
+                {!isBarcode && (
+                  <>
+                    <Button onPress={() => setShowModal(false)}>Cancel</Button>
+                    <Button
+                      loading={isLoading}
+                      onPress={async () => {
+                        setisBarcode(false);
+                        if (isSelfie) {
+                          await takePicture('selfie', null);
+                        }
+                        setShowModal(false);
+                        setisSelfie(false);
+                      }}>
+                      Save
+                    </Button>
+                  </>
+                )}
               </Card.Actions>
             </Card>
           </View>

@@ -17,7 +17,6 @@ import {
 } from '../../Constant/AppConstant';
 
 import ThemeSwitch from '../../components/Buttons/ThemeSwitch';
-import {getThemedColor} from '../../Utils/ThemeUtils';
 import {FineLocationPermission} from '../../Utils/permissions/location';
 import ScreenWraper from '../../components/Layout/ScreenWraper';
 import LgButton from '../../components/Buttons/LgButton';
@@ -26,12 +25,12 @@ import {
   getExpiresStorage,
   getStorage,
 } from '../../Utils/storage';
+import InitialCheckService from '../../Utils/services/InitialCheckService';
 const InitialLoader = () => {
   const navigation = useNavigation();
   const [isCheckLogin, setIsCheckLogin] = useState(false);
   const {authUserState, authUserDispatch} = useAuthUser();
   const {appFeatureState, appFeatureDispatch} = useAppFeature();
-
   const [showBtn, setShowBtn] = useState(false);
   // Google auth initializer and configration
   useEffect(() => {
@@ -41,129 +40,64 @@ const InitialLoader = () => {
     return () => {};
   }, []);
 
+  // initialize theme
+  const setInitalState = async () => {
+    const themeMode = await getStorage('theme');
+    if (themeMode) {
+      appFeatureDispatch({type: TOGGLE_THEME, payload: themeMode});
+    }
+  };
   useEffect(() => {
-    const setInitalState = async () => {
-      const getAvailableService = await getExpiresStorage('isServiceAvailable');
-      appFeatureDispatch({
-        type: APP_FEATURE_SERVICE,
-        payload: {
-          destinationLatitude:
-            getAvailableService?.destinationLatitude || 22.80007,
-          destinationLongitude:
-            getAvailableService?.destinationLongitude || 75.826985,
-          startTime:
-            getAvailableService?.startTime || new Date().setHours(7, 0, 0, 0),
-          endTime:
-            getAvailableService?.endTime || new Date().setHours(9, 3, 0, 0),
-          temprary: getAvailableService?.temprary || false,
-        },
-      });
-      const themeMode = await getStorage('theme');
-      if (themeMode) {
-        appFeatureDispatch({type: TOGGLE_THEME, payload: themeMode});
-      }
-    };
-
     setInitalState();
-
     return () => {};
   }, []);
 
+  const checkAvailableServices = async () => {
+    await InitialCheckService.checkAvailableServices(appFeatureDispatch);
+  };
+  // // Check the available services
+  useEffect(() => {
+    let isMounted = true;
+    isMounted && checkAvailableServices();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Check fine Location permission and navigate to the require page
+  const checkPermissions = async isMounted => {
+    await InitialCheckService.permission(navigation, StackActions, isMounted);
+    setIsCheckLogin(true);
+  };
   // Check all the necessary permissions for the app
   useEffect(() => {
     let isMounted = true;
-    // Check fine Location permission
-    const checkPermissions = async () => {
-      const fineLocationGranted = await PermissionsAndroid.check(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      );
-
-      if (!fineLocationGranted && isMounted) {
-        navigation.dispatch(StackActions.replace('FineLocation'));
-        return;
-      }
-      const backgroundLocationGranted = await PermissionsAndroid.check(
-        PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-      );
-      // Check fine Background permission
-      if (!backgroundLocationGranted && isMounted) {
-        navigation.dispatch(StackActions.replace('BackgroundLocation'));
-        return;
-      }
-
-      setIsCheckLogin(true);
-    };
-
-    checkPermissions();
-
+    isMounted && checkPermissions(isMounted);
     return () => {
       isMounted = false;
     };
   }, [navigation]);
 
-  // // Check the available services
-  useEffect(() => {
-    let isMounted = true;
-    const checkAvailableServices = async () => {
-      const {data} = await getAvailableTime();
-      if (data?.startTime) {
-        await setExpiresStorage('availableTime', data, 1000 * 60 * 60 * 2);
-        appFeatureDispatch({
-          type: APP_FEATURE_SERVICE,
-          payload: data,
-        });
-      }
-    };
-
-    isMounted && checkAvailableServices();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
   // When user open the app this function will invocke and get the user detail to login if the user already loging
+  const checkIsAuthUser = async () => {
+    // here if user already open and run this app and user navigate to the other page then this function will not call this api which prevent unnessecsery api calls
+    if (isCheckLogin && !authUserState?.isLoggedIn) {
+      await InitialCheckService.checkIsAuthUser(
+        authUserDispatch,
+        StackActions,
+        navigation,
+      );
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
-    const checkIsAuthUser = async () => {
-      if (isCheckLogin) {
-        // here if user already open and run this app and user navigate to the other page then this function will not call this api which prevent unnessecsery api calls
-        const {data} = !authUserState?.isLoggedIn && (await userInitialRoute());
-        if (data?.user) {
-          authUserDispatch({
-            type: SET_USER_DATA,
-            payload: data.user,
-          });
-          authUserDispatch({type: SET_IS_LOGGED_IN, payload: true});
-
-          if (data?.user?.isAuthenticated === false) {
-            return navigation.dispatch(StackActions.replace('Wait'));
-            // If user authenticated by the admin then the user redirected to the main Home Page
-          } else if (data?.user?.isAuthenticated === true) {
-            // If  user not authenticated by the admin then the user redirected to the Wait Page
-            return navigation.dispatch(StackActions.replace('Home'));
-          }
-        } else {
-          return navigation.dispatch(StackActions.replace('Login'));
-        }
-      }
-    };
-
     isMounted && checkIsAuthUser();
 
     return () => {
       isMounted = false;
     };
   }, [isCheckLogin]);
-
-  const checkPermission = async () => {
-    const granted = await PermissionsAndroid.check(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-    );
-    if (granted) {
-      navigation.dispatch(StackActions.replace('BackgroundLocation'));
-    }
-  };
 
   const openURL = () => {
     const url = 'https://webbusmate.vercel.app/contact'; // Replace with the desired URL
@@ -247,7 +181,7 @@ const InitialLoader = () => {
             title="GET STARTED"
             onPress={async () => {
               await FineLocationPermission();
-              checkPermission();
+              checkPermissions(true);
             }}
           />
         </View>

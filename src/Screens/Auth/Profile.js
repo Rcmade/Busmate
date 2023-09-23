@@ -11,6 +11,7 @@ import {useAppFeature} from '../../Context/AppFeatureContext';
 import {SET_USER_DATA} from '../../Constant/UserConstant';
 import {SHOW_TOAST} from '../../Constant/AppConstant';
 import LocationService from '../../Utils/services/locationService';
+import {removeStorage} from '../../Utils/storage';
 
 const Profile = () => {
   const navigation = useNavigation();
@@ -91,6 +92,8 @@ const Profile = () => {
         if (data?.user) {
           setIsUpdate(false);
           authUserDispatch({type: SET_USER_DATA, payload: data.user});
+          await removeStorage('date');
+          await removeStorage('location');
           appFeatureDispatch({
             type: SHOW_TOAST,
             payload: {

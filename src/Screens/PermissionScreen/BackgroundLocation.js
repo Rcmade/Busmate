@@ -8,22 +8,18 @@ import {
 } from '../../Utils/permissions/location';
 import {useAuthUser} from '../../Context/AuthUserContext';
 import ScreenWraper from '../../components/Layout/ScreenWraper';
+import InitialCheckService from '../../Utils/services/InitialCheckService';
 
 const BackgroundLocation = () => {
   const navigation = useNavigation();
-  const {authUserState} = useAuthUser();
+  const {authUserState, authUserDispatch} = useAuthUser();
 
-  if (Platform.Version < 26) {
-    checkUser();
-    // navigation.dispatch(StackActions.replace('Login'));
-    return null;
-  }
-  const checkUser = () => {
-    if (authUserState?.isLoggedIn) {
-      navigation.dispatch(StackActions.replace('Home'));
-    } else {
-      navigation.dispatch(StackActions.replace('Login'));
-    }
+  const checkUser = async () => {
+    await InitialCheckService.checkIsAuthUser(
+      authUserDispatch,
+      StackActions,
+      navigation,
+    );
   };
 
   const checkPermission = async () => {
@@ -32,8 +28,6 @@ const BackgroundLocation = () => {
     );
     if (granted) {
       checkUser();
-    } else {
-      return;
     }
   };
 

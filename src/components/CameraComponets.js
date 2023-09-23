@@ -56,7 +56,6 @@ const CameraComponets = ({
   const saveBarcodeImage = async barcodeId => {
     setBarcodeData({barcodeId});
     await takePicture('barcode', barcodeId);
-    // console.log({c: barcodeId});
     return;
   };
 

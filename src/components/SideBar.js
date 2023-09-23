@@ -103,15 +103,21 @@ const SideBar = ({toggleSideBar, logOutHandler, user, navigation}) => {
                 justifyContent: 'space-between',
               }}>
               <Icon
-                name={appFeatureState.theme === 'light' ? 'moon-o' : 'sun-o'}
+                name={appFeatureState.theme === 'light' ? 'sun-o' : 'moon-o'}
                 key={appFeatureState.theme}
                 size={35}
                 color={colors.pBlackWhite}
               />
               <Text style={{color: colors.pBlackWhite}}>
-                {appFeatureState.theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+                {appFeatureState.theme === 'light' ? 'Light Mode' : 'Dark Mode'}
               </Text>
-              <ThemeSwitch single={false} />
+              <Icon
+                name={
+                  appFeatureState.theme === 'light' ? 'toggle-off' : 'toggle-on'
+                }
+                size={35}
+                color={colors.pblackBlue}
+              />
             </View>
           </TouchableRipple>
 

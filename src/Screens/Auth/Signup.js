@@ -8,7 +8,6 @@ import {
 import React, {useEffect, useRef, useState} from 'react';
 import {StackActions, useNavigation} from '@react-navigation/native';
 
-// import Buttons from '../../components/Buttons/Buttons';
 import Modal1 from '../../components/Modals/Modal1';
 import {RNCamera} from 'react-native-camera';
 import {
@@ -164,15 +163,16 @@ const Signup = () => {
   // send the data to the server
   const formSubmitHandler = async () => {
     setIsLoading(true);
-    const getBarcodeData = !appFeatureState.isServiceAvailable.temprary
-      ? await getStorage('barcode')
-      : getProfileImage;
+    const getBarcodeData = appFeatureState.isServiceAvailable.temprary
+      ? await getStorage('selfie')
+      : await getStorage('barcode');
     const getProfileImage = await getStorage('selfie');
     const {name, password, email, busNumber, profileImage, photo} = inputValue;
 
-    const idCard = !appFeatureState.isServiceAvailable.temprary
-      ? inputValue.idCard
-      : inputValue.email;
+    const idCard = appFeatureState.isServiceAvailable.temprary
+      ? inputValue.email
+      : inputValue.idCard;
+
     try {
       if (
         !name ||
@@ -212,6 +212,7 @@ const Signup = () => {
             type: 'image/jpeg',
           });
         }
+
         formData.append('name', name);
         formData.append('email', email);
         formData.append('password', password);
@@ -240,91 +241,20 @@ const Signup = () => {
         }
       }
     } catch (error) {
+      appFeatureDispatch({
+        type: SHOW_TOAST,
+        payload: {
+          visiblity: true,
+          description: error.message,
+          title: 'Error',
+          status: 'error',
+        },
+      });
       console.log(JSON.stringify(error));
     } finally {
       setIsLoading(false);
     }
   };
-
-  // const varifyHandler = async () => {
-  //   setIsLoading(true);
-  //   try {
-  //     const {name, email} = inputValue;
-  //     if (!name || !email) {
-  //       showToast({
-  //         description: 'All Fields Are Required',
-  //         title: 'Please Fill All The Fields',
-  //         variant: 'left-accent',
-  //       });
-  //       return;
-  //     } else {
-  //       const {data} = await sendOtp({name, email});
-  //       if (data?.error) {
-  //         showToast({
-  //           description: data?.error,
-  //           title: 'Error',
-  //           variant: 'left-accent',
-  //         });
-  //         return;
-  //       } else {
-  //         await setStorage('otpHash', data?.hash);
-  //         setisOtpSend(true);
-
-  //         showToast({
-  //           description: '',
-  //           title: data.message,
-  //           variant: 'left-accent',
-  //         });
-  //         return;
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.log({error});
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // const varifyOTPHandler = async () => {
-  //   setIsLoading(true);
-  //   const getOtp = await getStorage('otpHash');
-  //   try {
-  //     const {name, email, otp} = inputValue;
-  //     if (!name || !email || !otp) {
-  //       showToast({
-  //         description: 'All Fields Are Required',
-  //         title: 'Please Fill All The Fields',
-  //         variant: 'left-accent',
-  //       });
-  //       return;
-  //     } else {
-  //       const {data} = await varifyOtp({email, otp, hash: getOtp});
-  //       if (data?.error) {
-  //         showToast({
-  //           description: data.error,
-  //           title: data.error,
-  //           variant: 'left-accent',
-  //         });
-  //         return;
-  //       } else {
-  //         await removeStorage('otpHash');
-  //         setisOtpSend(false);
-  //         setisEmailVarified(true);
-
-  //         showToast({
-  //           description: '',
-  //           title: data.message,
-  //           variant: 'left-accent',
-  //         });
-  //         return;
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   const {colors} = useTheme();
 
@@ -408,6 +338,7 @@ const Signup = () => {
                       takePicture={takePicture}
                       setisBarcode={setisBarcode}
                       setisSelfie={setisSelfie}
+                      isBarcode={isBarcode}
                     />
                   )}
                 </TouchableOpacity>

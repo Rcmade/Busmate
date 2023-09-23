@@ -31,7 +31,7 @@ export const FineLocationPermission = async () => {
 
     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
       // console.log('You can use the ACCESS_FINE_LOCATION');
-      
+
       return true;
     } else {
       console.log('ACCESS_FINE_LOCATION permission denied');
@@ -101,13 +101,17 @@ export const BackgroundLocationPermission = async () => {
             buttonPositive: 'OK',
           },
         );
-        console.log(PermissionsAndroid.RESULTS, 'ACCESS_BACKGROUND_LOCATION');
         if (response === PermissionsAndroid.RESULTS.DENIED) {
+          console.log(
+            'appfeatures appfeaturesappfeaturesappfeaturesappfeaturesappfeaturesappfeaturesappfeaturesappfeaturesappfeaturesappfeaturesappfeaturesappfeaturesappfeaturesappfeatures',
+          );
           Alert.alert(
             'Permission denied',
             'You have not given background location permission to track your bus. This will close the app.',
             [{text: 'OK', onPress: () => BackHandler.exitApp()}],
           );
+
+          return false;
         } else {
           return true;
         }

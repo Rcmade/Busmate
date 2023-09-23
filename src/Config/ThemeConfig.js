@@ -6,6 +6,7 @@ export const lightTheme = {
     ...MD3LightTheme.colors,
     pGrayBlue: '#00BFBF',
     pWhiteBlue: '#00BFBF',
+    pblackBlue: '#000',
     pGrayWhite: '#FFF',
     pYellow: '#FFD400',
     sYellow: '#FFC200',
@@ -21,6 +22,7 @@ export const lightTheme = {
     toastBlue: '#B9E6FD',
     toastBlack: 'black',
     toastInfo: '#026AA0',
+    grayBlack: '#000',
   },
 };
 
@@ -31,6 +33,7 @@ export const darkTheme = {
     toastBlue: '#B9E6FD',
     toastInfo: '#026AA0',
     toastBlack: 'black',
+    grayBlack: '#C0DFE1',
     lightBlackWhite: 'rgba(0,0,0, 0.5)',
     darkBlueLightWhite: 'rgba(14, 20, 32, 0.5)',
     darkBlueGray: '#E8EFF5',
@@ -38,6 +41,7 @@ export const darkTheme = {
     lightBluePGray: '#353535',
     lightDarkGray: '#D6D6D6',
     pBlackWhite: '#FFFF',
+    pblackBlue: '#00BFBF',
     pWhiteBlue: '#FFF',
     sGrayYellow: '#FFD400',
     pGrayBlue: '#353535',

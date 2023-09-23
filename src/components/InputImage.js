@@ -13,7 +13,6 @@ const InputImage = ({
   ...inp
 }) => {
   const [show, setShow] = React.useState(false);
-
   return (
     <>
       <View
@@ -53,7 +52,7 @@ const InputImage = ({
             // backgroundColor: {},
           }}
           // secureTextEntry={!show}
-          type={name === 'password' ? (show ? 'text' : 'password') : 'text'}
+          secureTextEntry={name === 'password' ? (show ? false : true) : false}
           right={
             name === 'password' && (
               <TextInput.Icon

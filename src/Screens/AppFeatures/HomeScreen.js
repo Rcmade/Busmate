@@ -7,7 +7,7 @@ import {
   FineLocationPermission,
 } from '../../Utils/permissions/location';
 import MapComponents from '../../components/MapComponents';
-import {SHOW_TOAST, TASK_ID} from '../../Constant/AppConstant';
+import {APP_VERSION, SHOW_TOAST, TASK_ID} from '../../Constant/AppConstant';
 import {
   getExpiresStorage,
   getStorage,
@@ -15,7 +15,11 @@ import {
   setStorage,
 } from '../../Utils/storage';
 import NetworkService from '../../Utils/services/netService';
-import {changeContributor, getNewLocationRoute} from '../../Server';
+import {
+  changeContributor,
+  getAppUpdate,
+  getNewLocationRoute,
+} from '../../Server';
 
 import ReactNativeForegroundService from '@supersami/rn-foreground-service';
 import LocationService from '../../Utils/services/locationService';
@@ -31,12 +35,17 @@ const HomeScreen = () => {
   const {authUserState} = useAuthUser();
   const [appState, setAppState] = useState(AppState.currentState);
   const {appFeatureDispatch, appFeatureState} = useAppFeature();
+  const [newAppUpdate, setNewAppUpdate] = useState({
+    updateTitle: '',
+    updateLink: '',
+    updateDescription: '',
+    isUpdateAvailable: false,
+  });
 
   const startTime = appFeatureState?.isServiceAvailable?.startTime;
   const endTime = appFeatureState?.isServiceAvailable?.endTime;
   const isRunNow = RunnigSevice.getAvailability(startTime, endTime);
   const getPreviousDayLocation = async () => {};
-
   // Ask the user to give permission
   useEffect(() => {
     let cleanFunction = true;
@@ -63,8 +72,12 @@ const HomeScreen = () => {
     // this is run when user close the app then all location state becomes empty on that time it will load previous location data from local  storage
     const addOldLocation = async () => {
       const getOldLocation = await getExpiresStorage('location');
-      if (getOldLocation) {
-        setLocation(getOldLocation || {});
+      if (
+        getOldLocation &&
+        Array.isArray(getOldLocation) &&
+        getOldLocation?.length > 2
+      ) {
+        setLocation(getOldLocation || []);
       }
     };
 
@@ -73,43 +86,39 @@ const HomeScreen = () => {
     return () => (cleanFunction = false);
   }, []);
 
-  // this will add the location data in the local storage
-  useEffect(() => {
-    let mounted = true;
-    const persistLocationData = async () => {
-      await setExpiresStorage('location', location, 1000 * 60 * 60);
-    };
-
-    mounted && persistLocationData();
-    return () => (mounted = false);
-  }, [location]);
-
   // Create Polyline for all User
   const getLocation = useCallback(async () => {
-    try {
-      const now = new Date();
-      if (authUserState?.user?.busNumber) {
-        // get last date , when user location data form the server at that time we store the last time so that we get that location which is not take by user , if user take all location before 9 am the we transfer only after 9 am location of bus
-        const getDate = await getStorage('date');
-        const {data} = await getNewLocationRoute({
-          date: getDate,
-          busNumber: authUserState?.user?.busNumber,
-        });
+    const now = new Date();
+    if (authUserState?.user?.busNumber && appState === 'active') {
+      const getDate = await getStorage('date');
+      const {data} = await getNewLocationRoute({
+        date: getDate || new Date(Date.now() - 1000 * 60 * 30),
+        busNumber: authUserState?.user?.busNumber,
+      });
+      await setStorage('date', new Date(now.getTime() - 3000));
+      if (data?.length) {
+        const combineData = pre => {
+          const existingArray = pre[authUserState.user.busNumber] || [];
+          const combine = {
+            ...pre,
+            [authUserState.user.busNumber]: [...existingArray, ...data],
+          };
+          // console.log(combine);
+          return combine;
+        };
 
-        await setStorage('date', new Date(now.getTime() - 3000));
-        if (data?.length) {
-          setLocation(pre => {
-            const existingArray = pre[authUserState.user.busNumber] || [];
-
-            return {
-              ...pre,
-              [authUserState.user.busNumber]: [...existingArray, ...data],
-            };
-          });
+        setLocation(pre => combineData(pre));
+        const preLocation = (await getExpiresStorage('location')) || {};
+        if (preLocation) {
+          await setExpiresStorage(
+            'location',
+            combineData(preLocation),
+            1000 * 60 * 60,
+          );
         }
       }
-    } catch (error) {}
-  }, [authUserState]);
+    }
+  }, [authUserState, appState]);
 
   // This is the calling function of getLocation to create polylines
   useEffect(() => {
@@ -117,7 +126,7 @@ const HomeScreen = () => {
     // this function is called when the user open the app again
     const handleAppStateChange = nextAppState => {
       setAppState(nextAppState);
-      if (nextAppState === 'active') {
+      if (nextAppState === 'active' && isRunNow && !interval) {
         // this will call every 4 second
         interval = setInterval(() => {
           if (isRunNow) {
@@ -152,7 +161,7 @@ const HomeScreen = () => {
     };
 
     // this the depencies of the function when we want to call this useeffects function
-  }, [appState, authUserState]);
+  }, [appState]);
 
   // start forground services so that the app work even in the background or forground services
   useEffect(() => {
@@ -160,14 +169,13 @@ const HomeScreen = () => {
     const startForeGround = async () => {
       ReactNativeForegroundService.start({
         id: TASK_ID,
-        title: 'Busmate',
-        message: 'We will notify when your bus available',
+        title: 'Busmate at Your Service!',
+        message: 'We are here to assist you with your bus-related needs.',
         icon: 'ic_launcher',
       });
       if (isRunNow) {
       } else {
         await ReactNativeForegroundService.stopAll();
-
         appFeatureDispatch({
           type: SHOW_TOAST,
           payload: {
@@ -282,12 +290,34 @@ const HomeScreen = () => {
     // return () => Geolocation.clearWatch(watchId);
   }, []);
 
+  // check new version of app and request for update
+  useEffect(() => {
+    const getIsAppUpdate = async () => {
+      const {data} = await getAppUpdate();
+      if (data && Number(data?.updateVersion) !== APP_VERSION) {
+        setNewAppUpdate(pre => ({
+          ...pre,
+          ...data,
+          isUpdateAvailable: true,
+        }));
+      }
+    };
+
+    getIsAppUpdate();
+  }, []);
+
   return (
     <>
       <MapComponents
         mapRef={mapRef}
         user={authUserState?.user}
-        trackingLineCoordinates={location[authUserState.user.busNumber] || []}
+        trackingLineCoordinates={location[authUserState?.user?.busNumber] || []}
+        updateTitle={newAppUpdate.updateTitle}
+        updateLink={newAppUpdate.updateLink}
+        updateDescription={newAppUpdate.updateDescription}
+        isUpdateAvailable={newAppUpdate.isUpdateAvailable}
+        setNewAppUpdate={setNewAppUpdate}
+        hardUpdate={newAppUpdate.hardUpdate}
       />
     </>
   );

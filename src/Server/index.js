@@ -42,5 +42,6 @@ export const getNewLocationRoute = async data =>
     },
   });
 
+export const getAppUpdate = async data => api.get(`/get-app-update`);
 export const testapi = async data => api.post('/get', data);
 export default api;

@@ -5,10 +5,19 @@ import MapPolyLineCompnent from './MapPolyLineCompnent';
 import {darkMapStyles} from '../Config/MapConfig';
 import {Text, useTheme} from 'react-native-paper';
 import {useAppFeature} from '../Context/AppFeatureContext';
+import AppUpdateComponent from './AppUpdateComponent';
 
-const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
-  // console.log({trackingLineCoordinates});
-
+const MapComponents = ({
+  trackingLineCoordinates,
+  mapRef,
+  user,
+  updateTitle,
+  updateLink,
+  updateDescription,
+  isUpdateAvailable,
+  setNewAppUpdate,
+  hardUpdate,
+}) => {
   const [marker, setMarker] = useState(null);
   const [initialRegion, setInitialRegion] = useState({
     latitude: 22.719459654294255,
@@ -35,35 +44,40 @@ const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
   const {appFeatureState} = useAppFeature();
 
   useEffect(() => {
-    const getLastPosition = trackingLineCoordinates?.slice(-1)[0];
+    if (trackingLineCoordinates) {
+      const getLastPosition = trackingLineCoordinates?.slice(-1)[0];
 
-    if (getLastPosition) {
-      if (mapRef.current) {
-        if (marker) {
-          marker.animateMarkerToCoordinate(
+      if (getLastPosition) {
+        if (mapRef.current) {
+          if (marker) {
+            marker.animateMarkerToCoordinate(
+              {
+                latitude: getLastPosition.latitude,
+                longitude: getLastPosition.longitude,
+              },
+              4000,
+            );
+          }
+          setHeading(getLastPosition.heading);
+          console.log('Inside Region');
+          mapRef.current.animateToRegion(
             {
               latitude: getLastPosition.latitude,
               longitude: getLastPosition.longitude,
+              heading: getLastPosition.heading,
+              latitudeDelta: 0.019,
+              longitudeDelta: 0.019,
             },
             4000,
           );
         }
-        setHeading(getLastPosition.heading);
-        mapRef.current.animateToRegion(
-          {
-            latitude: getLastPosition.latitude,
-            longitude: getLastPosition.longitude,
-            heading: getLastPosition.heading,
-            latitudeDelta: 0.02,
-            longitudeDelta: 0.02,
-          },
-          4000,
-        );
-      }
 
-      if (getLastPosition?.createdAt) {
-        const date = new Date(getLastPosition?.createdAt).toLocaleTimeString();
-        setLastLocationRef(date || 'Not connected');
+        if (getLastPosition?.createdAt) {
+          const date = new Date(
+            getLastPosition?.createdAt,
+          ).toLocaleTimeString();
+          setLastLocationRef(date || 'Not connected');
+        }
       }
     }
 
@@ -125,6 +139,16 @@ const MapComponents = ({trackingLineCoordinates, mapRef, user}) => {
           )}
         </MapView>
 
+        {isUpdateAvailable && (
+          <AppUpdateComponent
+            colors={colors}
+            updateDescription={updateDescription}
+            updateTitle={updateTitle}
+            updateLink={updateLink}
+            setNewAppUpdate={setNewAppUpdate}
+            hardUpdate={hardUpdate}
+          />
+        )}
         <View
           // h="full"
           style={{

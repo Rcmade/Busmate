@@ -17,13 +17,18 @@ import {useTheme, Text, Button} from 'react-native-paper';
 
 import {useAppFeature} from '../../Context/AppFeatureContext';
 import {SHOW_TOAST} from '../../Constant/AppConstant';
+import InputImage from '../../components/InputImage';
+import LgButton from '../../components/Buttons/LgButton';
 
 const Login = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
   const {authUserState, authUserDispatch} = useAuthUser();
-
-  const {appFeatureDispatch} = useAppFeature();
+  const [inputValue, setInputValue] = useState({
+    password: null,
+    email: null,
+  });
+  const {appFeatureDispatch, appFeatureState} = useAppFeature();
 
   useEffect(() => {
     if (authUserState?.user?.isAuthenticated === false) {
@@ -35,15 +40,34 @@ const Login = () => {
   }, [authUserState]);
 
   //  Get Email Address , User Name , User Image from user
-  const googleSignSubmit = async () => {
+  const googleSignSubmit = async disableGoogleSigin => {
     setIsLoading(true);
     try {
+      if (disableGoogleSigin) {
+        if (!inputValue.email || !inputValue.password) {
+          appFeatureDispatch({
+            type: SHOW_TOAST,
+            payload: {
+              visiblity: true,
+              description: 'All Field Are Required',
+              title: 'Input Field Error ',
+              status: 'error',
+            },
+          });
+          return;
+        }
+      }
       await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
+      const userInfo = disableGoogleSigin
+        ? inputValue
+        : await GoogleSignin.signIn();
+
       if (userInfo) {
         const {data} = await loginRoute({
-          email: userInfo.user.email,
-          idToken: userInfo.idToken,
+          email: userInfo?.user?.email || userInfo?.email,
+          idToken: userInfo?.idToken,
+          password: userInfo.password || undefined,
+          manual: disableGoogleSigin,
         });
         if (data?.user) {
           authUserDispatch({type: SET_IS_LOGGED_IN, payload: true});
@@ -99,6 +123,15 @@ const Login = () => {
         // console.log('Play services not available or outdated');
       } else {
         // console.log('Some other error happened');
+        appFeatureDispatch({
+          type: SHOW_TOAST,
+          payload: {
+            visiblity: true,
+            description: JSON.stringify(error?.message),
+            title: 'Google Play Services',
+            status: 'error',
+          },
+        });
       }
     } finally {
       setIsLoading(false);
@@ -106,6 +139,15 @@ const Login = () => {
   };
 
   const {colors} = useTheme();
+
+  const onChangeHandler = (filed, value) => {
+    return setInputValue(pre => {
+      return {
+        ...pre,
+        [filed]: value,
+      };
+    });
+  };
 
   return (
     <ScreenWraper>
@@ -122,16 +164,52 @@ const Login = () => {
             }}>
             Login
           </Text>
-
           <View paddingHorizontal={20}>
             <GoogleButton
               isLoading={isLoading}
-              onPress={googleSignSubmit}
+              onPress={() => googleSignSubmit(false)}
               isLoadingText="Please wait..."
               title="Login With Google"
               imgUrl={require('../../assets/google.png')}
             />
           </View>
+          {appFeatureState.isServiceAvailable.manualSigin && (
+            <View paddingBottom={30} marginTop={30}>
+              <Text style={{color: colors.pBlackWhite, textAlign: 'center'}}>
+                OR
+              </Text>
+              <InputImage
+                imgUrl={require('../../assets/email.png')}
+                colors={colors}
+                placeHolder={'Email'}
+                alt="Email Img"
+                // readOnly={true}
+                name="email"
+                onChangeText={value => onChangeHandler('email', value)}
+                value={inputValue?.email}
+              />
+
+              <InputImage
+                imgUrl={require('../../assets/lock.png')}
+                colors={colors}
+                placeHolder={'Password'}
+                alt="Password Img"
+                // readOnly={true}
+                onChangeText={value => onChangeHandler('password', value)}
+                name="password"
+                value={inputValue?.password}
+              />
+
+              <View paddingHorizontal={20}>
+                <LgButton
+                  // mb={40}
+                  title="Continue"
+                  loading={isLoading}
+                  onPress={() => googleSignSubmit(true)}
+                />
+              </View>
+            </View>
+          )}
           <View
             alignItems={'center'}
             justifyContent="center"
