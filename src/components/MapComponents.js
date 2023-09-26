@@ -1,5 +1,5 @@
 import {StyleSheet, Image, View} from 'react-native';
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState} from 'react';
 import MapView, {Marker} from 'react-native-maps';
 import MapPolyLineCompnent from './MapPolyLineCompnent';
 import {darkMapStyles} from '../Config/MapConfig';

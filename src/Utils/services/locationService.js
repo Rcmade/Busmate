@@ -22,6 +22,8 @@ class LocationService {
   avgSpeedArr = [];
   isAssignedNow = false;
   ping = null;
+  isNotRunNow = false;
+  runInterval = null;
 
   async changeLocation(newLocation) {
     // Track the user
@@ -33,12 +35,8 @@ class LocationService {
       this.avgSpeedArr.shift();
     }
 
+
     if (!this.isAssigned?.assigned) {
-      // console.log('this.avgSpeedArr.length', this.avgSpeedArr.length);
-      // console.log(
-      //   'avgSpeed',
-      //   this.avgSpeedArr.reduce((a, b) => a + b, 0) / this.avgSpeedArr?.length,
-      // );
       if (this.avgSpeedArr.length === 5) {
         this.isAssignedNow =
           this.avgSpeedArr.reduce((a, b) => a + b, 0) /
@@ -47,12 +45,6 @@ class LocationService {
       }
     }
 
-    // console.log({
-    //   isAssignedNow: this.isAssignedNow,
-    //   // avgSpeedArr: this.avgSpeedArr,
-    //   avgSpeed:
-    //     this.avgSpeedArr.reduce((a, b) => a + b, 0) / this.avgSpeedArr?.length,
-    // });
     return {location: this.location};
   }
 

@@ -3,10 +3,7 @@ import {View, Image, StyleSheet, TouchableOpacity, Linking} from 'react-native';
 import {Text, useTheme} from 'react-native-paper';
 
 import {StackActions, useNavigation} from '@react-navigation/native';
-import {PermissionsAndroid} from 'react-native';
 import {useAuthUser} from '../../Context/AuthUserContext';
-import {SET_IS_LOGGED_IN, SET_USER_DATA} from '../../Constant/UserConstant';
-import {getAvailableTime, userInitialRoute} from '../../Server';
 import {WEB_CLIENT_ID} from '../../Config/ClientConfig';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import {useAppFeature} from '../../Context/AppFeatureContext';
@@ -17,12 +14,8 @@ import {
 } from '../../Constant/AppConstant';
 
 import ThemeSwitch from '../../components/Buttons/ThemeSwitch';
-import {FineLocationPermission} from '../../Utils/permissions/location';
 import ScreenWraper from '../../components/Layout/ScreenWraper';
-import LgButton from '../../components/Buttons/LgButton';
 import {
-  setExpiresStorage,
-  getExpiresStorage,
   getStorage,
 } from '../../Utils/storage';
 import InitialCheckService from '../../Utils/services/InitialCheckService';
@@ -30,8 +23,7 @@ const InitialLoader = () => {
   const navigation = useNavigation();
   const [isCheckLogin, setIsCheckLogin] = useState(false);
   const {authUserState, authUserDispatch} = useAuthUser();
-  const {appFeatureState, appFeatureDispatch} = useAppFeature();
-  const [showBtn, setShowBtn] = useState(false);
+  const {appFeatureDispatch} = useAppFeature();
   // Google auth initializer and configration
   useEffect(() => {
     GoogleSignin.configure({
@@ -41,47 +33,63 @@ const InitialLoader = () => {
   }, []);
 
   // initialize theme
-  const setInitalState = async () => {
+  const setInitalThemeState = async () => {
     const themeMode = await getStorage('theme');
     if (themeMode) {
       appFeatureDispatch({type: TOGGLE_THEME, payload: themeMode});
     }
   };
-  useEffect(() => {
-    setInitalState();
-    return () => {};
-  }, []);
 
+  // hit the available time api
   const checkAvailableServices = async () => {
-    await InitialCheckService.checkAvailableServices(appFeatureDispatch);
+    try {
+      const data = await InitialCheckService.checkAvailableServices();
+      appFeatureDispatch({
+        type: APP_FEATURE_SERVICE,
+        payload: data,
+      });
+    } catch (error) {
+      console.log(error);
+      appFeatureDispatch({
+        type: SHOW_TOAST,
+        payload: {
+          visiblity: true,
+          description: error.message,
+          title: 'Connection Status',
+          status: 'error',
+        },
+      });
+    }
   };
-  // // Check the available services
-  useEffect(() => {
-    let isMounted = true;
-    isMounted && checkAvailableServices();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // Check fine Location permission and navigate to the require page
   const checkPermissions = async isMounted => {
     await InitialCheckService.permission(navigation, StackActions, isMounted);
+    // first check all the nessesory permission of app then get the user loging details
     setIsCheckLogin(true);
   };
-  // Check all the necessary permissions for the app
+
+  // // Check the available services
   useEffect(() => {
     let isMounted = true;
-    isMounted && checkPermissions(isMounted);
+    const callFunctions = async () => {
+      // this call the available services and set the data to the localstorage
+      await checkAvailableServices();
+      // this will set the user previous selected this
+      await setInitalThemeState();
+      // this will check the permission of the app and navigate to the require page
+      await checkPermissions(isMounted);
+    };
+    isMounted && callFunctions();
     return () => {
       isMounted = false;
     };
-  }, [navigation]);
+  }, []);
 
   // When user open the app this function will invocke and get the user detail to login if the user already loging
   const checkIsAuthUser = async () => {
     // here if user already open and run this app and user navigate to the other page then this function will not call this api which prevent unnessecsery api calls
-    if (isCheckLogin && !authUserState?.isLoggedIn) {
+    if (!authUserState?.isLoggedIn) {
       await InitialCheckService.checkIsAuthUser(
         authUserDispatch,
         StackActions,
@@ -90,10 +98,10 @@ const InitialLoader = () => {
     }
   };
 
+  // calling function of the user loging details
   useEffect(() => {
     let isMounted = true;
-    isMounted && checkIsAuthUser();
-
+    isMounted && isCheckLogin && checkIsAuthUser();
     return () => {
       isMounted = false;
     };
@@ -175,7 +183,7 @@ const InitialLoader = () => {
           alt="Show"
         />
       </View>
-      {showBtn && (
+      {/* {showBtn && (
         <View marginVertical={50} paddingHorizontal={10} style={styles.getWrap}>
           <LgButton
             title="GET STARTED"
@@ -185,7 +193,7 @@ const InitialLoader = () => {
             }}
           />
         </View>
-      )}
+      )} */}
     </ScreenWraper>
   );
 };

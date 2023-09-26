@@ -80,7 +80,7 @@ const Login = () => {
           }
         } else if (data?.error) {
           // console.log({data});
-
+          await GoogleSignin.signOut();
           appFeatureDispatch({
             type: SHOW_TOAST,
             payload: {

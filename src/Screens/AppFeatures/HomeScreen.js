@@ -45,8 +45,24 @@ const HomeScreen = () => {
   const startTime = appFeatureState?.isServiceAvailable?.startTime;
   const endTime = appFeatureState?.isServiceAvailable?.endTime;
   const isRunNow = RunnigSevice.getAvailability(startTime, endTime);
-  const getPreviousDayLocation = async () => {};
+
+  // // this get the entire location data of selected bus is the service
+  // const getEntireRoute = async () => {
+  //   const {data} = await getNewLocationRoute({
+  //     busNumber: authUserState?.user?.busNumber,
+  //   });
+  //   await setStorage('date', new Date(now.getTime() - 3000));
+  //   const combineData = pre => {
+  //     const combine = {
+  //       ...pre,
+  //       [authUserState.user.busNumber]: data,
+  //     };
+  //     return combine;
+  //   };
+  //   setLocation(pre => combineData(pre));
+  // };
   // Ask the user to give permission
+  
   useEffect(() => {
     let cleanFunction = true;
     const permissions = async () => {
@@ -180,8 +196,9 @@ const HomeScreen = () => {
           type: SHOW_TOAST,
           payload: {
             visiblity: true,
-            description: 'No buses running at the moment',
-            title: 'Notification',
+            description:
+              'At the moment, there is no active connection with any bus.',
+            title: 'Connection Status Update',
             status: 'error',
           },
         });
@@ -208,6 +225,7 @@ const HomeScreen = () => {
                 await ReactNativeForegroundService.stopAll();
                 clearInterval(intervalId);
               }
+              console.log(position);
               // filter required data from position
               const locationData = {
                 latitude1: position.coords.latitude,
@@ -291,18 +309,17 @@ const HomeScreen = () => {
   }, []);
 
   // check new version of app and request for update
+  const getIsAppUpdate = async () => {
+    const {data} = await getAppUpdate();
+    if (data && Number(data?.updateVersion) !== APP_VERSION) {
+      setNewAppUpdate(pre => ({
+        ...pre,
+        ...data,
+        isUpdateAvailable: true,
+      }));
+    }
+  };
   useEffect(() => {
-    const getIsAppUpdate = async () => {
-      const {data} = await getAppUpdate();
-      if (data && Number(data?.updateVersion) !== APP_VERSION) {
-        setNewAppUpdate(pre => ({
-          ...pre,
-          ...data,
-          isUpdateAvailable: true,
-        }));
-      }
-    };
-
     getIsAppUpdate();
   }, []);
 

@@ -8,10 +8,10 @@ const colorScheme = Appearance.getColorScheme();
 
 const initialState = {
   isServiceAvailable: {
-    destinationLatitude: 22.80007,
-    destinationLongitude: 75.826985,
-    startTime: new Date().setHours(7, 0, 0, 0),
-    offTime: new Date().setHours(9, 3, 0, 0),
+    destinationLatitude: null,
+    destinationLongitude: null,
+    startTime: null,
+    offTime: null,
     temprary: false,
   },
   theme: colorScheme,

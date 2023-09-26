@@ -2,7 +2,7 @@ export const LocationConfig = {
   // because the of accuracy
   enableHighAccuracy: true,
   // runs when the distance is greater than 30 meter
-  distanceFilter: 50,
+  distanceFilter: 70,
   // runs every 4 second
   interval: 4000,
   // This option sets the maximum time (in milliseconds) that can pass before a new location update is obtained. Setting this to a lower value can help improve the responsiveness of the location updates, but may consume more battery.
