@@ -21,6 +21,7 @@ const initialState = {
     description: '',
     variant: '',
     status: '',
+    duration:7000
   },
 };
 const AppFeatureProvider = ({children}) => {

@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://busmets.azurewebsites.net/api',
-  // baseURL: 'http://localhost:4444/api',
+ baseURL: 'https://busmets.azurewebsites.net/api',
+//  baseURL: 'http://localhost:4444/api',
   withCredentials: true,
   headers: {
     Accept: 'application/json',
@@ -39,6 +39,7 @@ export const getNewLocationRoute = async data =>
     params: {
       date: data.date,
       busNumber: data.busNumber,
+      version: data?.APP_VERSION,
     },
   });
 

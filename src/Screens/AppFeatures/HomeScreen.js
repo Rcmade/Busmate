@@ -62,7 +62,7 @@ const HomeScreen = () => {
   //   setLocation(pre => combineData(pre));
   // };
   // Ask the user to give permission
-  
+
   useEffect(() => {
     let cleanFunction = true;
     const permissions = async () => {
@@ -108,18 +108,18 @@ const HomeScreen = () => {
     if (authUserState?.user?.busNumber && appState === 'active') {
       const getDate = await getStorage('date');
       const {data} = await getNewLocationRoute({
-        date: getDate || new Date(Date.now() - 1000 * 60 * 30),
+        date: getDate || new Date(Date.now() - 1000 * 60 * 60),
         busNumber: authUserState?.user?.busNumber,
+        APP_VERSION,
       });
-      await setStorage('date', new Date(now.getTime() - 3000));
-      if (data?.length) {
+      if (data?.data?.length) {
+        await setStorage('date', new Date(now.getTime() - 3000));
         const combineData = pre => {
           const existingArray = pre[authUserState.user.busNumber] || [];
           const combine = {
             ...pre,
-            [authUserState.user.busNumber]: [...existingArray, ...data],
+            [authUserState.user.busNumber]: [...existingArray, ...data.data],
           };
-          // console.log(combine);
           return combine;
         };
 
@@ -131,6 +131,37 @@ const HomeScreen = () => {
             combineData(preLocation),
             1000 * 60 * 60,
           );
+        }
+      } else {
+        if (!(await getExpiresStorage('connectionLostMessage'))) {
+          await setExpiresStorage('connectionLostMessage', true, 1000 * 60 * 2);
+          setLocation(pre => {
+            if (pre[authUserState?.user?.busNumber]?.length) {
+              const lastDate =
+                pre[authUserState?.user?.busNumber][
+                  pre[authUserState?.user?.busNumber]?.length - 1
+                ]?.createdAt;
+              if (lastDate) {
+                const isConnectionLost =
+                  new Date(lastDate).getTime() + 1000 * 60 * 1 < Date.now();
+                console.log({isConnectionLost, lastDate});
+                if (isConnectionLost) {
+                  appFeatureDispatch({
+                    type: SHOW_TOAST,
+                    payload: {
+                      visiblity: true,
+                      description:
+                        "Bus live location service is temporarily disconnected from the server. We're working to resolve this. Apologies for any inconvenience.",
+                      title: 'Connection Status Update',
+                      status: 'error',
+                      duration: 20000,
+                    },
+                  });
+                }
+              }
+            }
+            return pre;
+          });
         }
       }
     }
@@ -215,7 +246,7 @@ const HomeScreen = () => {
   useEffect(() => {
     ReactNativeForegroundService.add_task(
       async () => {
-        const intervalId = setInterval(async () => {
+        let intervalId = setInterval(async () => {
           LocationService.ping = (await NetworkService.getPing()).duration;
         }, 5000);
         try {
@@ -225,7 +256,12 @@ const HomeScreen = () => {
                 await ReactNativeForegroundService.stopAll();
                 clearInterval(intervalId);
               }
-              console.log(position);
+
+              if (LocationService.isAssigned && intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+              }
+
               // filter required data from position
               const locationData = {
                 latitude1: position.coords.latitude,

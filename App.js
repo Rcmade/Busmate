@@ -76,6 +76,7 @@ const App = () => {
               },
             })
           }
+          duration={toast?.duration || 7000}
           style={{
             backgroundColor: colors.toastBlue,
             position: 'relative',

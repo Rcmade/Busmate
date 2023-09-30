@@ -163,15 +163,27 @@ const Signup = () => {
   // send the data to the server
   const formSubmitHandler = async () => {
     setIsLoading(true);
-    const getBarcodeData = appFeatureState.isServiceAvailable.temprary
-      ? await getStorage('selfie')
-      : await getStorage('barcode');
-    const getProfileImage = await getStorage('selfie');
-    const {name, password, email, busNumber, profileImage, photo} = inputValue;
+    //appFeatureState.isServiceAvailable.temprary
+    const getBarcodeData = await getStorage('barcode');
 
-    const idCard = appFeatureState.isServiceAvailable.temprary
-      ? inputValue.email
-      : inputValue.idCard;
+    const getProfileImage = await getStorage('selfie');
+
+    const {name, password, email, busNumber, profileImage, photo, idCard} =
+      inputValue;
+
+    if (!idCard && !appFeatureState.isServiceAvailable.temprary) {
+      appFeatureDispatch({
+        type: SHOW_TOAST,
+        payload: {
+          visiblity: true,
+          description: 'Id Card is required',
+          title: 'Please Fill All The Fields',
+          status: 'error',
+        },
+      });
+      setIsLoading(false);
+      return;
+    }
 
     try {
       if (
@@ -180,7 +192,6 @@ const Signup = () => {
         +busNumber >= 21 ||
         !busNumber ||
         !profileImage ||
-        !idCard ||
         !getBarcodeData.uri ||
         !getProfileImage
       ) {
@@ -193,7 +204,7 @@ const Signup = () => {
             status: 'error',
           },
         });
-
+        setIsLoading(false);
         return;
       } else {
         const formData = new FormData();
@@ -204,7 +215,7 @@ const Signup = () => {
           type: 'image/jpeg',
         });
 
-        if (!appFeatureState.isServiceAvailable.temprary) {
+        if (idCard) {
           formData.append('imgs', {
             name: 'idImage',
             filename: idCard,
@@ -216,7 +227,12 @@ const Signup = () => {
         formData.append('name', name);
         formData.append('email', email);
         formData.append('password', password);
-        formData.append('idCard', idCard);
+
+        if (!idCard & appFeatureState.isServiceAvailable.temprary) {
+          formData.append('idCard', email);
+        } else {
+          formData.append('idCard', idCard);
+        }
         formData.append('busNumber', busNumber);
         formData.append('photo', photo);
         const {data} = await signUpRoute(formData);
@@ -309,40 +325,38 @@ const Signup = () => {
                 maxLength={2}
               />
               {/* User IdCard Input */}
-              {!appFeatureState.isServiceAvailable.temprary && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setisBarcode(true);
-                    setShowModal(!showModal);
-                  }}>
-                  <InputImage
-                    imgUrl={require('../../assets/email.png')}
-                    colors={colors}
-                    placeHolder={'Scan Your Id card'}
-                    readOnly={true}
-                    alt="Id Img"
-                    name="idCard"
-                    value={inputValue?.idCard}
-                    // onChange={onChangeHandler}
-                    onChangeText={value => onChangeHandler('idCard', value)}
+              <TouchableOpacity
+                onPress={() => {
+                  setisBarcode(true);
+                  setShowModal(!showModal);
+                }}>
+                <InputImage
+                  imgUrl={require('../../assets/email.png')}
+                  colors={colors}
+                  placeHolder={'Scan Your Id card'}
+                  readOnly={true}
+                  alt="Id Img"
+                  name="idCard"
+                  value={inputValue?.idCard}
+                  // onChange={onChangeHandler}
+                  onChangeText={value => onChangeHandler('idCard', value)}
+                />
+                {isBarcode && (
+                  <Modal1
+                    title="Scan Your Id card"
+                    showModal={showModal}
+                    setShowModal={setShowModal}
+                    cameraType={RNCamera.Constants.Type.back}
+                    barcodeData={barcodeData?.barcodeId}
+                    setBarcodeData={setBarcodeData}
+                    cameraRef={cameraRef}
+                    takePicture={takePicture}
+                    setisBarcode={setisBarcode}
+                    setisSelfie={setisSelfie}
+                    isBarcode={isBarcode}
                   />
-                  {isBarcode && (
-                    <Modal1
-                      title="Scan Your Id card"
-                      showModal={showModal}
-                      setShowModal={setShowModal}
-                      cameraType={RNCamera.Constants.Type.back}
-                      barcodeData={barcodeData?.barcodeId}
-                      setBarcodeData={setBarcodeData}
-                      cameraRef={cameraRef}
-                      takePicture={takePicture}
-                      setisBarcode={setisBarcode}
-                      setisSelfie={setisSelfie}
-                      isBarcode={isBarcode}
-                    />
-                  )}
-                </TouchableOpacity>
-              )}
+                )}
+              </TouchableOpacity>
               {/* User Profile Input */}
               <TouchableOpacity
                 onPress={() => {

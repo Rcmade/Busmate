@@ -72,6 +72,7 @@ const MapComponents = ({
           );
         }
 
+        console.log("fdjkdldjkfd")
         if (getLastPosition?.createdAt) {
           const date = new Date(
             getLastPosition?.createdAt,
