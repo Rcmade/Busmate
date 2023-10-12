@@ -192,7 +192,7 @@ const Signup = () => {
         +busNumber >= 21 ||
         !busNumber ||
         !profileImage ||
-        !getBarcodeData.uri ||
+        (!appFeatureState.isServiceAvailable.temprary && !getBarcodeData.uri) ||
         !getProfileImage
       ) {
         appFeatureDispatch({

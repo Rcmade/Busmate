@@ -79,8 +79,8 @@ android {
         applicationId "com.busmate"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 27
-        versionName "2.1.7"
+        versionCode 28
+        versionName "2.2.9"
         missingDimensionStrategy 'react-native-camera', 'mlkit' // <--- replace general with mlkit
     }
     signingConfigs {
